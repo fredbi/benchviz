@@ -28,6 +28,7 @@ type Category struct {
 	Data        []CategoryData
 }
 
+// Metrics returns the deduplicated list of metrics present in the category data.
 func (c Category) Metrics() (metrics []config.Metric) {
 	seenMetric := make(map[config.Metric]struct{})
 
@@ -44,6 +45,7 @@ func (c Category) Metrics() (metrics []config.Metric) {
 	return metrics
 }
 
+// Labels returns the deduplicated X-axis labels across all data series in the category.
 func (c Category) Labels() (xlabels []string) {
 	labelsIdx := make(map[SeriesKey]struct{})
 

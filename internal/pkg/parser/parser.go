@@ -32,12 +32,14 @@ type ParsingReport struct {
 	Signatures    []Signature   `json:"benchmark_signatures"`
 }
 
+// Signature describes a single benchmark function with its available metrics and environment.
 type Signature struct {
 	Name             string        `json:"benchmark_name"`
 	AvailableMetrics []MinMaxRange `json:"available_metrics"`
 	Environment      string        `json:"environment"`
 }
 
+// MinMaxRange captures the value range and measurement count for a single metric.
 type MinMaxRange struct {
 	Metric  config.MetricName `json:"metric"`
 	Count   int               `json:"measurements_count"`

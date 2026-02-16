@@ -253,6 +253,7 @@ type BenchmarkSet struct {
 	Set []ParsedBenchmark
 }
 
+// Environment returns the first non-empty environment string found in the benchmark set.
 func (s BenchmarkSet) Environment() string {
 	for _, set := range s.Set {
 		if env := set.Environment; env != "" {

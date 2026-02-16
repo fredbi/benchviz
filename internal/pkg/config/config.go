@@ -42,30 +42,35 @@ type Config struct {
 	// TODO: provision default context, version for regexp mismatches
 }
 
+// GetFunction retrieves a function definition by its ID.
 func (c Config) GetFunction(id string) (Function, bool) {
 	v, ok := c.functionIndex[id]
 
 	return v, ok
 }
 
+// GetContext retrieves a context definition by its ID.
 func (c Config) GetContext(id string) (Context, bool) {
 	v, ok := c.contextIndex[id]
 
 	return v, ok
 }
 
+// GetVersion retrieves a version definition by its ID.
 func (c Config) GetVersion(id string) (Version, bool) {
 	v, ok := c.versionIndex[id]
 
 	return v, ok
 }
 
+// GetMetric retrieves a metric definition by its [MetricName].
 func (c Config) GetMetric(id MetricName) (Metric, bool) {
 	v, ok := c.metricIndex[id]
 
 	return v, ok
 }
 
+// FindFunction returns the ID of the first function whose regexp matches the given benchmark name.
 func (c Config) FindFunction(name string) (id string, ok bool) {
 	for _, def := range c.Functions {
 		if id, ok := def.MatchString(name); ok {
@@ -76,6 +81,7 @@ func (c Config) FindFunction(name string) (id string, ok bool) {
 	return "", false
 }
 
+// FindVersion returns the ID of the first version whose regexp matches the given benchmark name.
 func (c Config) FindVersion(name string) (id string, ok bool) {
 	for _, def := range c.Versions {
 		if id, ok := def.MatchString(name); ok {
@@ -86,6 +92,7 @@ func (c Config) FindVersion(name string) (id string, ok bool) {
 	return "", false
 }
 
+// FindVersionFromFile returns the ID of the first version matched by a file-based rule.
 func (c Config) FindVersionFromFile(file string) (id string, ok bool) {
 	for _, def := range c.Files {
 		if _, ok := def.MatchString(file); !ok {
@@ -102,6 +109,7 @@ func (c Config) FindVersionFromFile(file string) (id string, ok bool) {
 	return "", false
 }
 
+// FindContext returns the ID of the first context whose regexp matches the given benchmark name.
 func (c Config) FindContext(name string) (id string, ok bool) {
 	for _, def := range c.Contexts {
 		if id, ok := def.MatchString(name); ok {
@@ -112,6 +120,7 @@ func (c Config) FindContext(name string) (id string, ok bool) {
 	return "", false
 }
 
+// FindContextFromFile returns the ID of the first context matched by a file-based rule.
 func (c Config) FindContextFromFile(file string) (id string, ok bool) {
 	for _, def := range c.Files {
 		if _, ok := def.MatchString(file); !ok {
@@ -128,7 +137,6 @@ func (c Config) FindContextFromFile(file string) (id string, ok bool) {
 	return "", false
 }
 
-// EncodeYAML outputs a YAML-friendly representation of [Config] for marshaling.
 // EncodeYAML serializes a [Config] to YAML into the provided writer.
 //
 // Runtime-only fields (IsJSON, IsStrict, Outputs) are excluded from the output.
@@ -151,6 +159,7 @@ func (c *Config) EncodeYAML(w io.Writer) error {
 	return yaml.NewEncoder(w).Encode(raw)
 }
 
+// Rendering holds chart rendering settings (theme, layout, legend, scale).
 type Rendering struct {
 	Title       string
 	Theme       string
@@ -163,19 +172,23 @@ type Rendering struct {
 	Screenshot  Screenshot
 }
 
+// Orientation controls the chart bar direction.
 type Orientation string
 
+// Supported chart orientations.
 const (
 	OrientationVertical   Orientation = "vertical"
 	OrientationHorizontal Orientation = "horizontal"
 )
 
+// Screenshot configures the headless Chrome screenshot used for PNG rendering.
 type Screenshot struct {
 	Height int64
 	Width  int64
 	Sleep  string
 }
 
+// SleepDuration parses the Sleep field as a [time.Duration].
 func (s Screenshot) SleepDuration() time.Duration {
 	d, err := time.ParseDuration(s.Sleep)
 	if d == 0 || err != nil {
@@ -185,6 +198,7 @@ func (s Screenshot) SleepDuration() time.Duration {
 	return d
 }
 
+// File defines a file-matching rule that enriches benchmarks with version or context based on filename.
 type File struct {
 	ID        string
 	MatchFile string
@@ -194,6 +208,7 @@ type File struct {
 	match *regexp.Regexp
 }
 
+// MatchString reports whether the file name matches the file rule, returning the file rule ID.
 func (f File) MatchString(file string) (id string, ok bool) {
 	if f.match == nil {
 		return "", false
@@ -206,20 +221,25 @@ func (f File) MatchString(file string) (id string, ok bool) {
 	return f.ID, true
 }
 
+// Layout controls how charts are arranged on the page.
 type Layout struct {
 	Horizontal int
 	Vertical   int
 }
 
+// Scale controls the Y-axis scaling strategy.
 type Scale string
 
+// Supported Y-axis scale modes.
 const (
 	ScaleAuto Scale = "auto"
 	ScaleLog  Scale = "log"
 )
 
+// LegendPosition controls where the chart legend is displayed.
 type LegendPosition string
 
+// Supported legend positions.
 const (
 	LegendPositionNone   LegendPosition = "none"
 	LegendPositionBottom LegendPosition = "bottom"
@@ -228,18 +248,21 @@ const (
 	LegendPositionRight  LegendPosition = "right"
 )
 
+// Output holds the resolved output file paths for HTML and PNG rendering.
 type Output struct {
 	HTMLFile string
 	PngFile  string
 	IsTemp   bool
 }
 
+// Metric defines a benchmark metric with its display title and axis label.
 type Metric struct {
 	ID    MetricName
 	Title string
 	Axis  string
 }
 
+// Object is the base type for regexp-matched configuration entries (functions, contexts, versions).
 type Object struct {
 	ID       string
 	Title    string
@@ -249,10 +272,12 @@ type Object struct {
 	notMatch *regexp.Regexp
 }
 
+// Matchers returns the compiled positive and negative match regexps.
 func (o Object) Matchers() (match, notMatch *regexp.Regexp) {
 	return o.match, o.notMatch
 }
 
+// MatchString reports whether name matches the object's positive regexp and not its negative regexp.
 func (o Object) MatchString(name string) (id string, ok bool) {
 	var matchOk, notMatchOk bool
 	id = o.ID
@@ -281,24 +306,29 @@ func (o Object) MatchString(name string) (id string, ok bool) {
 	return "", false
 }
 
+// Function identifies a benchmark function by regexp matching on its name.
 type Function struct {
 	Object `mapstructure:",deep,squash"`
 }
 
+// Context identifies a benchmark context (e.g. input size, data type) by regexp matching.
 type Context struct {
 	Object `mapstructure:",deep,squash"`
 }
 
+// Version identifies a benchmark implementation variant (e.g. "reflect", "generics") by regexp matching.
 type Version struct {
 	Object `mapstructure:",deep,squash"`
 }
 
+// Category groups functions, contexts, versions and metrics into a single chart.
 type Category struct {
 	ID       string
 	Title    string
 	Includes Includes
 }
 
+// Includes lists the IDs of functions, versions, contexts and metrics included in a [Category].
 type Includes struct {
 	Functions []string
 	Versions  []string
@@ -645,10 +675,10 @@ func titleize[T str](in T) string {
 	))
 }
 
-// GenerateInput holds the data needed by [Generate] to build a config
+// GenerateInput holds the data needed by [Generate] to build a configuration
 // from parsed benchmark results.
 //
-// This avoids importing the parser package (which imports config).
+// This avoids importing the parser package (which imports [config]).
 type GenerateInput struct {
 	Functions []string
 	Metrics   []MetricName

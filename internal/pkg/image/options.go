@@ -1,4 +1,4 @@
-package image
+package image //nolint:revive // it's okay for an internal package to use this name
 
 import "time"
 

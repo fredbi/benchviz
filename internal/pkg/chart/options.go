@@ -48,18 +48,21 @@ func WithLegend(show bool) Option {
 	}
 }
 
+// WithYAxisLabel sets the Y-axis label text.
 func WithYAxisLabel(ylabel string) Option {
 	return func(c *options) {
 		c.YAxisLabel = ylabel
 	}
 }
 
+// WithXAxisLabels sets the X-axis data point labels.
 func WithXAxisLabels(xlabels []string) Option {
 	return func(c *options) {
 		c.XAxisLabels = xlabels
 	}
 }
 
+// WithHorizontal enables or disables horizontal bar orientation.
 func WithHorizontal(enabled bool) Option {
 	return func(c *options) {
 		c.Horizontal = enabled
