@@ -121,6 +121,7 @@ func testContext(t *testing.T) (context.Context, func()) {
 		chromedp.NoDefaultBrowserCheck,
 		chromedp.DisableGPU,
 		chromedp.NoSandbox, // Required for GitHub Actions and similar environments
+		chromedp.Headless,
 	}
 
 	return chromedp.NewExecAllocator(ctx, opts...)
