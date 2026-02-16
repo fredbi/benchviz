@@ -21,6 +21,7 @@ linters:
     - wsl
     - wsl_v5
     - tagliatelle # <- I don't feel compelled by this rule that demands camelCase when adopting consistent snake case
+    - nolintlint # <- temporary. Need to update the lint action on our side (one linter has changed meanwhile)
   settings:
     dupl:
       threshold: 200
