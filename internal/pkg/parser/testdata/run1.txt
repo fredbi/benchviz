@@ -1,0 +1,45 @@
+goos: linux
+goarch: amd64
+pkg: github.com/go-openapi/swag/jsonutils/adapters/testintegration/benchmarks
+cpu: AMD Ryzen 7 5800X 8-Core Processor             
+BenchmarkJSON
+BenchmarkJSON/with_standard_library
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_small
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_small-16         	13005949	      3020 ns/op	  47.68 MB/s	     416 B/op	       9 allocs/op
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_small
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_small-16        	56078876	       614.1 ns/op	 214.94 MB/s	     144 B/op	       1 allocs/op
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_small
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_small-16  	10574182	      3487 ns/op	     560 B/op	      10 allocs/op
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_medium
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_medium-16        	 2235476	     15966 ns/op	 129.65 MB/s	     624 B/op	      18 allocs/op
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_medium
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_medium-16       	25711994	      1379 ns/op	 229.10 MB/s	     320 B/op	       1 allocs/op
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_medium
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_medium-16 	 4111292	      9339 ns/op	    1233 B/op	      37 allocs/op
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_large
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_large-16         	  180291	    190534 ns/op	 147.58 MB/s	    4435 B/op	     147 allocs/op
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_large
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_large-16        	 1783418	     20211 ns/op	 239.33 MB/s	    4871 B/op	       1 allocs/op
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_large
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_large-16  	  261943	    140796 ns/op	   15249 B/op	     428 allocs/op
+BenchmarkJSON/with_easyjson_library
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_small
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_small-16         	43712187	       858.3 ns/op	 167.77 MB/s	     192 B/op	       5 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_small
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_small-16        	64595014	       524.5 ns/op	 251.68 MB/s	     720 B/op	       4 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_small
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_small-16  	22922629	      1500 ns/op	     913 B/op	       9 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_medium
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_medium-16        	 4939929	      7306 ns/op	 283.33 MB/s	     256 B/op	       9 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_medium
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_medium-16       	39401455	       917.5 ns/op	 344.40 MB/s	     897 B/op	       4 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_medium
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_medium-16 	 9979048	      3233 ns/op	    1322 B/op	      28 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_large
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_large-16         	  486135	     75891 ns/op	 370.51 MB/s	    3912 B/op	     132 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_large
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_large-16        	 3888386	      9140 ns/op	 529.20 MB/s	    5567 B/op	       8 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_large
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_large-16  	  717406	     47115 ns/op	   15496 B/op	     421 allocs/op
+PASS
+ok  	github.com/go-openapi/swag/jsonutils/adapters/testintegration/benchmarks	643.940s

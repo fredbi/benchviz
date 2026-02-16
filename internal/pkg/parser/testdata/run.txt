@@ -1,0 +1,45 @@
+goos: linux
+goarch: amd64
+pkg: github.com/go-openapi/swag/jsonutils/adapters/testintegration/benchmarks
+cpu: AMD Ryzen 7 5800X 8-Core Processor
+BenchmarkJSON
+BenchmarkJSON/with_standard_library
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_small
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_small-16         	12995456	      3083 ns/op	  46.72 MB/s	     416 B/op	       9 allocs/op
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_small
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_small-16        	52693042	       715.1 ns/op	 184.58 MB/s	     144 B/op	       1 allocs/op
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_small
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_small-16  	 8549334	      4097 ns/op	    1498 B/op	      30 allocs/op
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_medium
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_medium-16        	 2165944	     16566 ns/op	 124.96 MB/s	     624 B/op	      18 allocs/op
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_medium
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_medium-16       	22908730	      1555 ns/op	 203.23 MB/s	     320 B/op	       1 allocs/op
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_medium
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_medium-16 	 3702309	      9298 ns/op	    5649 B/op	      76 allocs/op
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_large
+BenchmarkJSON/with_standard_library/standard_ReadJSON_-_large-16         	  182792	    193579 ns/op	 145.25 MB/s	    4435 B/op	     147 allocs/op
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_large
+BenchmarkJSON/with_standard_library/standard_WriteJSON_-_large-16        	 1606856	     22707 ns/op	 213.02 MB/s	    4871 B/op	       1 allocs/op
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_large
+BenchmarkJSON/with_standard_library/standard_FromDynamicJSON_-_large-16  	  247678	    140669 ns/op	   90221 B/op	    1323 allocs/op
+BenchmarkJSON/with_easyjson_library
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_small
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_small-16         	36833007	       935.9 ns/op	 153.86 MB/s	     192 B/op	       5 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_small
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_small-16        	62861659	       569.3 ns/op	 231.87 MB/s	     720 B/op	       4 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_small
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_small-16  	 9389304	      3783 ns/op	    2076 B/op	      33 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_medium
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_medium-16        	 4901468	      7227 ns/op	 286.42 MB/s	     256 B/op	       9 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_medium
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_medium-16       	39522991	       945.3 ns/op	 334.28 MB/s	     897 B/op	       4 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_medium
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_medium-16 	 4060279	      8684 ns/op	    6229 B/op	      79 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_large
+BenchmarkJSON/with_easyjson_library/easyjson_ReadJSON_-_large-16         	  434173	     77848 ns/op	 361.19 MB/s	    3912 B/op	     132 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_large
+BenchmarkJSON/with_easyjson_library/easyjson_WriteJSON_-_large-16        	 3817731	      9948 ns/op	 486.24 MB/s	    5567 B/op	       8 allocs/op
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_large
+BenchmarkJSON/with_easyjson_library/easyjson_FromDynamicJSON_-_large-16  	  274522	    125377 ns/op	   91133 B/op	    1330 allocs/op
+PASS
+ok  	github.com/go-openapi/swag/jsonutils/adapters/testintegration/benchmarks	645.436s

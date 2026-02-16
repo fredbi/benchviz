@@ -1,0 +1,17 @@
+{"Time":"2026-01-13T17:32:18.054123135+01:00","Action":"start","Package":"github.com/go-openapi/testify/v2/internal/assertions"}
+{"Time":"2026-01-13T17:32:18.058060084+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"goos: linux\n"}
+{"Time":"2026-01-13T17:32:18.058143372+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"goarch: amd64\n"}
+{"Time":"2026-01-13T17:32:18.058149974+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"pkg: github.com/go-openapi/testify/v2/internal/assertions\n"}
+{"Time":"2026-01-13T17:32:18.058154453+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"cpu: AMD Ryzen 7 5800X 8-Core Processor             \n"}
+{"Time":"2026-01-13T17:32:18.05815846+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive\n"}
+{"Time":"2026-01-13T17:32:18.058372495+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/reflect/int\n"}
+{"Time":"2026-01-13T17:32:19.281201514+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/reflect/int-16         \t 9267388\t       131.9 ns/op\t      24 B/op\t       1 allocs/op\n"}
+{"Time":"2026-01-13T17:32:19.281218055+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/generic/int\n"}
+{"Time":"2026-01-13T17:32:20.423419481+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/generic/int-16         \t265610305\t         4.299 ns/op\t       0 B/op\t       0 allocs/op\n"}
+{"Time":"2026-01-13T17:32:20.423443296+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/reflect/float64\n"}
+{"Time":"2026-01-13T17:32:21.71422685+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/reflect/float64-16     \t 6281449\t       205.5 ns/op\t      24 B/op\t       1 allocs/op\n"}
+{"Time":"2026-01-13T17:32:21.714257578+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/generic/float64\n"}
+{"Time":"2026-01-13T17:32:22.89557856+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"BenchmarkPositive/generic/float64-16     \t263060247\t         4.490 ns/op\t       0 B/op\t       0 allocs/op\n"}
+{"Time":"2026-01-13T17:32:22.895596314+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"PASS\n"}
+{"Time":"2026-01-13T17:32:22.896380888+01:00","Action":"output","Package":"github.com/go-openapi/testify/v2/internal/assertions","Output":"ok  \tgithub.com/go-openapi/testify/v2/internal/assertions\t4.842s\n"}
+{"Time":"2026-01-13T17:32:22.896395606+01:00","Action":"pass","Package":"github.com/go-openapi/testify/v2/internal/assertions","Elapsed":4.842}

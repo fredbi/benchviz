@@ -1,0 +1,124 @@
+# configuration for benchviz
+environment: ''
+render:
+  title: 'Benchark'
+  theme: roma
+  chart: barchart
+  layout:
+    horizontal: 2
+    #vertical: 2
+  legend: bottom
+  scale: auto
+
+outputs:
+  htmlFile: ''
+  pngFile: ''
+
+metrics:
+  - 
+    id: nsPerOp
+    title: Benchmark Timings
+    axis: 'ns/op'
+  - 
+    id: allocsPerOp
+    title: Benchmark Allocations
+    axis: 'allocs/op'
+  - 
+    id: bytesPerOp
+    title: Benchmark Memory Usage
+    axis: 'bytes/op'
+  - 
+    id: MBytesPerS
+    title: Benchmark Throughput
+    axis: 'MB/s'
+
+functions:
+  -
+    id: greater
+    title: Greater
+    Match: 'GreaterT?'
+    NotMatch: 'GreaterOr'
+  -
+    id: less
+    title: Less
+    Match: 'LessT?'
+    NotMatch: 'LessOr'
+  -
+    id: positive
+    title: Positive
+    Match: 'LessT?'
+    NotMatch: 'LessOr'
+  -
+    id: negative
+    title: Negative
+    Match: 'NegativeT?'
+  -
+    id: elements-match
+    title: ElementsMatch
+    Match: 'ElementsMatchT'
+
+contexts:
+  -
+    id: int
+  -
+    id: float64
+  -
+    id: string
+  -
+    id: int-small
+    title: 'int - small'
+  -
+    id: int-large
+    title: 'int - large'
+  -
+    id: string-small
+    title: 'string - small'
+  -
+    id: string-large
+    title: 'string - large'
+
+versions:
+  -
+    id: reflect
+    title: reflect
+  -
+    id: generics
+    title: generics
+
+categories:
+  -
+    id: comparisons
+    title: '{metric} (comparisons)'
+    includes:
+      functions:
+        - greater
+        - less
+        - positive
+        - negative
+      versions:
+        - reflect
+        - generics
+      contexts:
+        - int
+        - float64
+        - string
+      metrics:
+        - nsPerOp
+        - allocsPerOp
+  -
+    id: collections
+    title: '{metric} (collections)' # placeholder for category
+    includes:
+      functions:
+        - elements-match
+      versions:
+        - reflect
+        - generics
+      contexts:
+        - int-small
+        - string-small
+        - int-large
+        - string-large
+      metrics:
+        - nsPerOp
+        - allocsPerOp

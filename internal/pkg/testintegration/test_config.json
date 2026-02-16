@@ -1,0 +1,179 @@
+{
+  "Name": "testify generics benchmarks",
+  "IsJSON": true,
+  "Environment": "",
+  "Render": {
+    "Title": "Benchark",
+    "Theme": "roma",
+    "Layout": {
+      "Horizontal": 2,
+      "Vertical": 0
+    },
+    "Chart": "barchart",
+    "Legend": "bottom",
+    "Scale": "auto",
+    "DualScale": false,
+    "Orientation": "horizontal"
+  },
+  "Outputs": {
+    "HTMLFile": "",
+    "PngFile": "",
+    "IsTemp": false
+  },
+  "Metrics": [
+    {
+      "ID": "nsPerOp",
+      "Title": "Benchmark Timings",
+      "Axis": "ns/op"
+    },
+    {
+      "ID": "allocsPerOp",
+      "Title": "Benchmark Allocations",
+      "Axis": "allocs/op"
+    },
+    {
+      "ID": "bytesPerOp",
+      "Title": "Benchmark Memory Usage",
+      "Axis": "bytes/op"
+    },
+    {
+      "ID": "MBytesPerS",
+      "Title": "Benchmark Throughput",
+      "Axis": "MB/s"
+    }
+  ],
+  "Functions": [
+    {
+      "ID": "greater",
+      "Title": "Greater",
+      "Match": "Greater",
+      "NotMatch": "GreaterOr"
+    },
+    {
+      "ID": "less",
+      "Title": "Less",
+      "Match": "Less",
+      "NotMatch": "LessOr"
+    },
+    {
+      "ID": "positive",
+      "Title": "Positive",
+      "Match": "Positive",
+      "NotMatch": ""
+    },
+    {
+      "ID": "negative",
+      "Title": "Negative",
+      "Match": "Negative",
+      "NotMatch": ""
+    },
+    {
+      "ID": "elements-match",
+      "Title": "ElementsMatch",
+      "Match": "ElementsMatch",
+      "NotMatch": ""
+    }
+  ],
+  "Contexts": [
+    {
+      "ID": "int",
+      "Title": "int",
+      "Match": "int",
+      "NotMatch": ""
+    },
+    {
+      "ID": "float64",
+      "Title": "float64",
+      "Match": "float64",
+      "NotMatch": ""
+    },
+    {
+      "ID": "string",
+      "Title": "string",
+      "Match": "string",
+      "NotMatch": ""
+    },
+    {
+      "ID": "small",
+      "Title": "small",
+      "Match": "small",
+      "NotMatch": ""
+    },
+    {
+      "ID": "medium",
+      "Title": "medium",
+      "Match": "medium",
+      "NotMatch": ""
+    },
+    {
+      "ID": "large",
+      "Title": "large",
+      "Match": "large",
+      "NotMatch": ""
+    }
+  ],
+  "Versions": [
+    {
+      "ID": "reflect",
+      "Title": "reflect",
+      "Match": "reflect",
+      "NotMatch": ""
+    },
+    {
+      "ID": "generics",
+      "Title": "generics",
+      "Match": "generic",
+      "NotMatch": ""
+    }
+  ],
+  "Categories": [
+    {
+      "ID": "comparisons",
+      "Title": "{metric} (comparisons)",
+      "Includes": {
+        "Functions": [
+          "greater",
+          "less",
+          "positive",
+          "negative"
+        ],
+        "Versions": [
+          "reflect",
+          "generics"
+        ],
+        "Contexts": [
+          "int",
+          "float64",
+          "string"
+        ],
+        "Metrics": [
+          "nsPerOp",
+          "allocsPerOp"
+        ]
+      }
+    },
+    {
+      "ID": "collections",
+      "Title": "{metric} (collections)",
+      "Includes": {
+        "Functions": [
+          "elements-match"
+        ],
+        "Versions": [
+          "reflect",
+          "generics"
+        ],
+        "Contexts": [
+          "small",
+          "medium",
+          "large"
+        ],
+        "Metrics": [
+          "nsPerOp",
+          "allocsPerOp"
+        ]
+      }
+    }
+  ],
+  "Files": null
+}

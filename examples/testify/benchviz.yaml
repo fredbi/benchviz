@@ -1,0 +1,133 @@
+# configuration for benchviz
+name: testify generics benchmarks
+environment: ''
+isJSON: true
+render:
+  title: 'Benchark'
+  theme: roma
+  chart: barchart
+  layout:
+    horizontal: 2
+    #vertical: 2
+  legend: bottom
+  scale: auto
+  orientation: horizontal
+
+outputs:
+  htmlFile: ''
+  pngFile: ''
+
+metrics:
+  - 
+    id: nsPerOp
+    title: Benchmark Timings
+    axis: 'ns/op'
+  - 
+    id: allocsPerOp
+    title: Benchmark Allocations
+    axis: 'allocs/op'
+  - 
+    id: bytesPerOp
+    title: Benchmark Memory Usage
+    axis: 'bytes/op'
+  - 
+    id: MBytesPerS
+    title: Benchmark Throughput
+    axis: 'MB/s'
+
+functions:
+  -
+    id: greater
+    title: Greater
+    match: 'Greater'
+    notmatch: 'GreaterOr'
+  -
+    id: less
+    title: Less
+    match: 'Less'
+    notmatch: 'LessOr'
+  -
+    id: positive
+    title: Positive
+    match: 'Positive'
+  -
+    id: negative
+    title: Negative
+    match: 'Negative'
+  -
+    id: elements-match
+    title: ElementsMatch
+    match: 'ElementsMatch'
+
+contexts:
+  -
+    id: int
+    title: int
+    match: 'int'
+  -
+    id: float64
+    title: float64
+    match: 'float64'
+  -
+    id: string
+    title: string
+    match: 'string'
+  -
+    id: small
+    title: small
+    match: 'small'
+  -
+    id: medium
+    title: medium
+    match: 'medium'
+  -
+    id: large
+    title: large
+    match: 'large'
+
+versions:
+  -
+    id: reflect
+    title: reflect
+    match: 'reflect'
+  -
+    id: generics
+    title: generics
+    match: 'generic'
+
+categories:
+  -
+    id: comparisons
+    title: '{metric} (comparisons)'
+    includes:
+      functions:
+        - greater
+        - less
+        - positive
+        - negative
+      versions:
+        - reflect
+        - generics
+      contexts:
+        - int
+        - float64
+        - string
+      metrics:
+        - nsPerOp
+        - allocsPerOp
+  -
+    id: collections
+    title: '{metric} (collections)' # placeholder for category
+    includes:
+      functions:
+        - elements-match
+      versions:
+        - reflect
+        - generics
+      contexts:
+        - small
+        - medium
+        - large
+      metrics:
+        - nsPerOp
+        - allocsPerOp

@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>testify generics benchmarks</title>
+    <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+    <script src="https://go-echarts.github.io/go-echarts-assets/assets/themes/roma.js"></script>
+</head>
+
+<body>
+
+
+
+
+
+    <style> .box { justify-content:center; display:flex; flex-wrap:wrap } </style>
+    <div class="box"> <div class="container">
+    <div class="item" id="MzWJaSibtaog" style="width:900px;height:500px;"></div>
+</div><script type="text/javascript">
+    "use strict";
+    let goecharts_MzWJaSibtaog = echarts.init(document.getElementById('MzWJaSibtaog'), "roma", { renderer: "canvas" });
+    let option_MzWJaSibtaog = {"grid":[{"top":"100","bottom":"100"}],"legend":{"show":true,"x":"right","y":"bottom"},"series":[{"name":"reflect","type":"bar","data":[{"name":"greater - int","value":201.2},{"name":"greater - float64","value":395.9},{"name":"greater - string","value":182.2},{"name":"less - int","value":187.7},{"name":"positive - int","value":141},{"name":"positive - float64","value":268.6},{"name":"negative - int","value":167}]},{"name":"generics","type":"bar","data":[{"name":"greater - int","value":5.412},{"name":"greater - float64","value":6.353},{"name":"greater - string","value":8.335},{"name":"less - int","value":5.377},{"name":"positive - int","value":4.326},{"name":"positive - float64","value":4.588},{"name":"negative - int","value":4.075}]}],"title":{"text":"Benchmark Timings (comparisons)","subtext":"linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor","subtextStyle":{"fontStyle":"italic","fontSize":12}},"toolbox":{"left":"right","feature":{"saveAsImage":{"title":"Save as image"}}},"tooltip":{"show":true,"trigger":"axis","axisPointer":{"type":"shadow"}},"xAxis":[{"type":"value","name":"Benchmark Timings (ns/op)","nameLocation":"center","nameGap":32,"scale":true,"axisLabel":{"formatter":function (value,index) { return value.toFixed(0).toString();},"showMinLabel":null,"showMaxLabel":null},"axisTick":{"alignWithLabel":true}}],"yAxis":[{"name":"Workload","position":"bottom","nameLocation":"end","type":"category","data":["greater - int","greater - float64","greater - string","less - int","positive - int","positive - float64","negative - int"],"axisLabel":{"interval":"0","rotate":30,"showMinLabel":true,"showMaxLabel":true,"hideOverlap":false}}]}
+
+    goecharts_MzWJaSibtaog.setOption(option_MzWJaSibtaog);
+</script> <div class="container">
+    <div class="item" id="kPRmnjRhGUDO" style="width:900px;height:500px;"></div>
+</div><script type="text/javascript">
+    "use strict";
+    let goecharts_kPRmnjRhGUDO = echarts.init(document.getElementById('kPRmnjRhGUDO'), "roma", { renderer: "canvas" });
+    let option_kPRmnjRhGUDO = {"grid":[{"top":"100","bottom":"100"}],"legend":{"show":true,"x":"right","y":"bottom"},"series":[{"name":"reflect","type":"bar","data":[{"name":"greater - int","value":1},{"name":"greater - float64","value":1},{"name":"greater - string","value":1},{"name":"less - int","value":1},{"name":"positive - int","value":1},{"name":"positive - float64","value":1},{"name":"negative - int","value":1}]},{"name":"generics","type":"bar","data":[{"name":"greater - int","value":0},{"name":"greater - float64","value":0},{"name":"greater - string","value":0},{"name":"less - int","value":0},{"name":"positive - int","value":0},{"name":"positive - float64","value":0},{"name":"negative - int","value":0}]}],"title":{"text":"Benchmark Allocations (comparisons)","subtext":"linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor","subtextStyle":{"fontStyle":"italic","fontSize":12}},"toolbox":{"left":"right","feature":{"saveAsImage":{"title":"Save as image"}}},"tooltip":{"show":true,"trigger":"axis","axisPointer":{"type":"shadow"}},"xAxis":[{"type":"value","name":"Benchmark Allocations (allocs/op)","nameLocation":"center","nameGap":32,"scale":true,"axisLabel":{"formatter":function (value,index) { return value.toFixed(0).toString();},"showMinLabel":null,"showMaxLabel":null},"axisTick":{"alignWithLabel":true}}],"yAxis":[{"name":"Workload","position":"bottom","nameLocation":"end","type":"category","data":["greater - int","greater - float64","greater - string","less - int","positive - int","positive - float64","negative - int"],"axisLabel":{"interval":"0","rotate":30,"showMinLabel":true,"showMaxLabel":true,"hideOverlap":false}}]}
+
+    goecharts_kPRmnjRhGUDO.setOption(option_kPRmnjRhGUDO);
+</script> <div class="container">
+    <div class="item" id="DxTtZzMpNOrx" style="width:900px;height:500px;"></div>
+</div><script type="text/javascript">
+    "use strict";
+    let goecharts_DxTtZzMpNOrx = echarts.init(document.getElementById('DxTtZzMpNOrx'), "roma", { renderer: "canvas" });
+    let option_DxTtZzMpNOrx = {"grid":[{"top":"100","bottom":"100"}],"legend":{"show":true,"x":"right","y":"bottom"},"series":[{"name":"reflect","type":"bar","data":[{"name":"elements-match - small","value":3795},{"name":"elements-match - medium","value":322972},{"name":"elements-match - large","value":30995386}]},{"name":"generics","type":"bar","data":[{"name":"elements-match - small","value":216.4},{"name":"elements-match - medium","value":5979},{"name":"elements-match - large","value":443007}]}],"title":{"text":"Benchmark Timings (collections)","subtext":"linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor","subtextStyle":{"fontStyle":"italic","fontSize":12}},"toolbox":{"left":"right","feature":{"saveAsImage":{"title":"Save as image"}}},"tooltip":{"show":true,"trigger":"axis","axisPointer":{"type":"shadow"}},"xAxis":[{"type":"value","name":"Benchmark Timings (ns/op)","nameLocation":"center","nameGap":32,"scale":true,"axisLabel":{"formatter":function (value,index) { return value.toFixed(0).toString();},"showMinLabel":null,"showMaxLabel":null},"axisTick":{"alignWithLabel":true}}],"yAxis":[{"name":"Workload","position":"bottom","nameLocation":"end","type":"category","data":["elements-match - small","elements-match - medium","elements-match - large"],"axisLabel":{"interval":"0","rotate":30,"showMinLabel":true,"showMaxLabel":true,"hideOverlap":false}}]}
+
+    goecharts_DxTtZzMpNOrx.setOption(option_DxTtZzMpNOrx);
+</script> <div class="container">
+    <div class="item" id="TWvIjLHjXSxm" style="width:900px;height:500px;"></div>
+</div><script type="text/javascript">
+    "use strict";
+    let goecharts_TWvIjLHjXSxm = echarts.init(document.getElementById('TWvIjLHjXSxm'), "roma", { renderer: "canvas" });
+    let option_TWvIjLHjXSxm = {"grid":[{"top":"100","bottom":"100"}],"legend":{"show":true,"x":"right","y":"bottom"},"series":[{"name":"reflect","type":"bar","data":[{"name":"elements-match - small","value":67},{"name":"elements-match - medium","value":5153},{"name":"elements-match - large","value":501503}]},{"name":"generics","type":"bar","data":[{"name":"elements-match - small","value":2},{"name":"elements-match - medium","value":3},{"name":"elements-match - large","value":3}]}],"title":{"text":"Benchmark Allocations (collections)","subtext":"linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor","subtextStyle":{"fontStyle":"italic","fontSize":12}},"toolbox":{"left":"right","feature":{"saveAsImage":{"title":"Save as image"}}},"tooltip":{"show":true,"trigger":"axis","axisPointer":{"type":"shadow"}},"xAxis":[{"type":"value","name":"Benchmark Allocations (allocs/op)","nameLocation":"center","nameGap":32,"scale":true,"axisLabel":{"formatter":function (value,index) { return value.toFixed(0).toString();},"showMinLabel":null,"showMaxLabel":null},"axisTick":{"alignWithLabel":true}}],"yAxis":[{"name":"Workload","position":"bottom","nameLocation":"end","type":"category","data":["elements-match - small","elements-match - medium","elements-match - large"],"axisLabel":{"interval":"0","rotate":30,"showMinLabel":true,"showMaxLabel":true,"hideOverlap":false}}]}
+
+    goecharts_TWvIjLHjXSxm.setOption(option_TWvIjLHjXSxm);
+</script> </div>
+
+
+
+
+</body>
+</html>
