@@ -2,27 +2,27 @@ package image //nolint:revive // it's okay for an internal package to use this n
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
 
+	"github.com/chromedp/chromedp"
+
 	"github.com/go-openapi/testify/v2/assert"
 	"github.com/go-openapi/testify/v2/require"
 )
-
-func TestMain(m *testing.M) {
-	os.Setenv("CHROME_FLAGS", "--no-sandbox")
-	os.Exit(m.Run())
-}
 
 func TestRenderFailingReader(t *testing.T) {
 	r := New()
 	errExpected := errors.New("read failure")
 	dest := &bytes.Buffer{}
 
-	err := r.Render(dest, &failingReader{err: errExpected})
+	ctx, cancel := testContext(t)
+	defer cancel()
+	err := r.Render(ctx, dest, &failingReader{err: errExpected})
 	require.Error(t, err)
 	require.ErrorIs(t, err, errExpected)
 	assert.Contains(t, err.Error(), "read content")
@@ -35,7 +35,9 @@ func TestRenderFailingWriter(t *testing.T) {
 	html := `<html><body><p>hello</p></body></html>`
 	errExpected := errors.New("write failure")
 
-	err := r.Render(&failingWriter{err: errExpected}, strings.NewReader(html))
+	ctx, cancel := testContext(t)
+	defer cancel()
+	err := r.Render(ctx, &failingWriter{err: errExpected}, strings.NewReader(html))
 	require.Error(t, err)
 	require.ErrorIs(t, err, errExpected)
 	assert.Contains(t, err.Error(), "writing screenshot")
@@ -48,7 +50,9 @@ func TestRenderSimpleHTML(t *testing.T) {
 	html := `<!DOCTYPE html><html><body style="background:white"><h1>Test</h1></body></html>`
 	dest := &bytes.Buffer{}
 
-	require.NoError(t, r.Render(dest, strings.NewReader(html)))
+	ctx, cancel := testContext(t)
+	defer cancel()
+	require.NoError(t, r.Render(ctx, dest, strings.NewReader(html)))
 
 	output := dest.Bytes()
 	require.NotEmpty(t, output)
@@ -65,7 +69,9 @@ func TestRenderEmptyHTML(t *testing.T) {
 	r := New()
 	dest := &bytes.Buffer{}
 
-	require.NoError(t, r.Render(dest, strings.NewReader("")))
+	ctx, cancel := testContext(t)
+	defer cancel()
+	require.NoError(t, r.Render(ctx, dest, strings.NewReader("")))
 
 	// Should still produce a valid PNG (blank page screenshot)
 	pngMagic := []byte{0x89, 0x50, 0x4E, 0x47}
@@ -99,4 +105,23 @@ func skipIfNoBrowser(t *testing.T) {
 		}
 	}
 	t.Skip("no Chrome/Chromium browser found, skipping integration test")
+}
+
+func testContext(t *testing.T) (context.Context, func()) {
+	t.Helper()
+
+	ctx := t.Context()
+	if ci := os.Getenv("CI"); ci == "" {
+		return ctx, func() {}
+	}
+
+	// Prepare browser options for CI/CD environments
+	opts := []chromedp.ExecAllocatorOption{
+		chromedp.NoFirstRun,
+		chromedp.NoDefaultBrowserCheck,
+		chromedp.DisableGPU,
+		chromedp.NoSandbox, // Required for GitHub Actions and similar environments
+	}
+
+	return chromedp.NewExecAllocator(ctx, opts...)
 }

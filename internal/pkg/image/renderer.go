@@ -23,8 +23,8 @@ func New(opts ...Option) *Renderer {
 }
 
 // Render a PNG image as a screenshot from a HTML input [io.Reader].
-func (r *Renderer) Render(dest io.Writer, source io.Reader) error {
-	screenshot, err := r.screenshot(source)
+func (r *Renderer) Render(ctx context.Context, dest io.Writer, source io.Reader) error {
+	screenshot, err := r.screenshot(ctx, source)
 	if err != nil {
 		return fmt.Errorf("taking screenshot: %w", err)
 	}
@@ -37,12 +37,8 @@ func (r *Renderer) Render(dest io.Writer, source io.Reader) error {
 	return nil
 }
 
-func (r *Renderer) screenshot(reader io.Reader) ([]byte, error) {
-	ctx, cancel := chromedp.NewContext(
-		context.Background(),
-		// chromedp.WithDebugf(log.Printf),
-		// chromedp.WithBrowserOption(opts ...chromedp.BrowserOption)
-	)
+func (r *Renderer) screenshot(ctx context.Context, reader io.Reader) ([]byte, error) {
+	ctx, cancel := chromedp.NewContext(ctx)
 	defer cancel()
 
 	var screenshot []byte

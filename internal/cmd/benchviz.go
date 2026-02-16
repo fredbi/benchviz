@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -135,7 +136,8 @@ func (c *Command) Execute(args ...string) error {
 		image.WithSleep(cfg.Render.Screenshot.SleepDuration()),
 	)
 
-	if err = r.Render(pngWriter, htmlReader); err != nil {
+	ctx := context.Background()
+	if err = r.Render(ctx, pngWriter, htmlReader); err != nil {
 		return fmt.Errorf("rendering image: %w", err)
 	}
 
