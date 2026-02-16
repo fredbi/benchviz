@@ -825,6 +825,7 @@ func TestAutoTitle(t *testing.T) {
 
 		w, err := os.Create(testConfig)
 		require.NoError(t, err)
+		defer w.Close()
 		require.NoError(t, dumpConfig(w, cfg))
 	})
 
