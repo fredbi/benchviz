@@ -1,8 +1,9 @@
-package image
+package image //nolint:revive // it's okay for an internal package to use this name
 
 import (
 	"bytes"
 	"errors"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -10,6 +11,11 @@ import (
 	"github.com/go-openapi/testify/v2/assert"
 	"github.com/go-openapi/testify/v2/require"
 )
+
+func TestMain(m *testing.M) {
+	os.Setenv("CHROME_FLAGS", "--no-sandbox")
+	os.Exit(m.Run())
+}
 
 func TestRenderFailingReader(t *testing.T) {
 	r := New()
