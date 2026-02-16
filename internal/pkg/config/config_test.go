@@ -21,7 +21,7 @@ func TestLoadDefault(t *testing.T) {
 }
 
 func TestLoadDefaultContent(t *testing.T) {
-	cfg, err := loadDefaults()
+	cfg, err := Load(filepath.Join(fixturePath(), "benchviz.yaml"))
 	require.NoError(t, err)
 
 	// verify metrics are loaded
@@ -42,7 +42,7 @@ func TestLoadDefaultContent(t *testing.T) {
 	}
 
 	// verify contexts
-	assert.Len(t, cfg.Contexts, 7)
+	assert.Len(t, cfg.Contexts, 6)
 
 	// verify versions
 	assert.Len(t, cfg.Versions, 2)
@@ -64,7 +64,7 @@ func TestLoadFromFile(t *testing.T) {
 	file := filepath.Join(dir, "config.yaml")
 	require.NoError(t, os.WriteFile(file, []byte(yamlContent), 0o600))
 
-	cfg, err := load(os.DirFS(dir), "config.yaml")
+	cfg, err := load(os.DirFS(dir), "config.yaml", &Config{})
 	require.NoError(t, err)
 
 	assert.Len(t, cfg.Functions, 1)
@@ -87,7 +87,7 @@ func TestLoadAbsolutePath(t *testing.T) {
 
 func TestLoadMissingFile(t *testing.T) {
 	dir := t.TempDir()
-	_, err := load(os.DirFS(dir), "nonexistent.yaml")
+	_, err := load(os.DirFS(dir), "nonexistent.yaml", &Config{})
 	require.Error(t, err)
 }
 
@@ -96,7 +96,7 @@ func TestLoadInvalidYAML(t *testing.T) {
 	file := filepath.Join(dir, "bad.yaml")
 	require.NoError(t, os.WriteFile(file, []byte(":\n  :\n    - [invalid"), 0o600))
 
-	_, err := load(os.DirFS(dir), "bad.yaml")
+	_, err := load(os.DirFS(dir), "bad.yaml", &Config{})
 	require.Error(t, err)
 }
 
@@ -218,7 +218,7 @@ func TestFileMatchString(t *testing.T) {
 }
 
 func TestFindFunction(t *testing.T) {
-	cfg := mustLoadDefaults(t)
+	cfg := mustLoadFixture(t)
 
 	tests := []struct {
 		input  string
@@ -334,7 +334,7 @@ func TestFindContextFromFile(t *testing.T) {
 }
 
 func TestGetters(t *testing.T) {
-	cfg := mustLoadDefaults(t)
+	cfg := mustLoadFixture(t)
 
 	t.Run("GetFunction found", func(t *testing.T) {
 		fn, ok := cfg.GetFunction("greater")
@@ -350,7 +350,7 @@ func TestGetters(t *testing.T) {
 	t.Run("GetContext found", func(t *testing.T) {
 		ctx, ok := cfg.GetContext("int")
 		require.True(t, ok, "expected to find context 'int'")
-		assert.Equal(t, "Int", ctx.Title)
+		assert.Equal(t, "int", ctx.Title)
 	})
 
 	t.Run("GetContext not found", func(t *testing.T) {
@@ -614,19 +614,6 @@ categories:
       functions: []
 `,
 		},
-		{
-			name: "category with more than 2 metrics",
-			yaml: `
-metrics:
-  - id: nsPerOp
-  - id: allocsPerOp
-  - id: bytesPerOp
-categories:
-  - id: cat1
-    includes:
-      metrics: [nsPerOp, allocsPerOp, bytesPerOp]
-`,
-		},
 	}
 
 	for _, tt := range tests {
@@ -822,22 +809,52 @@ func TestTitleizeMetricName(t *testing.T) {
 
 func TestAutoTitle(t *testing.T) {
 	// Contexts without explicit title get auto-titled
-	cfg := mustLoadDefaults(t)
+	tmpDir := t.TempDir()
+	testConfig := filepath.Join(tmpDir, "test_config.yaml")
+
+	t.Run("should prepare config", func(t *testing.T) {
+		cfg := mustLoadFixture(t)
+		for i, context := range cfg.Contexts {
+			if context.ID == "small" {
+				continue
+			}
+			context.Title = ""
+			cfg.Contexts[i] = context
+			cfg.contextIndex[context.ID] = context
+		}
+
+		w, err := os.Create(testConfig)
+		require.NoError(t, err)
+		require.NoError(t, dumpConfig(w, cfg))
+	})
+
+	cfg, err := Load(filepath.Join(tmpDir, "test_config.yaml"))
+	require.NoError(t, err)
+
 	ctx, ok := cfg.GetContext("int")
 	require.True(t, ok, "expected context 'int'")
 	assert.Equal(t, "Int", ctx.Title)
 
 	// Context with explicit title keeps it
-	ctx, ok = cfg.GetContext("int-small")
-	require.True(t, ok, "expected context 'int-small'")
-	assert.Equal(t, "int - small", ctx.Title)
+	ctx, ok = cfg.GetContext("small")
+	require.True(t, ok, "expected context 'small'")
+	assert.Equal(t, "small", ctx.Title)
 }
 
 // helpers
 
 func dumpConfig(w io.Writer, cfg *Config) error {
-	var raw any
-	err := mapstructure.Decode(cfg, &raw)
+	var raw map[string]any
+	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Squash: true,
+		Deep:   true,
+		Result: &raw,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = dec.Decode(cfg)
 	if err != nil {
 		return err
 	}
@@ -847,11 +864,17 @@ func dumpConfig(w io.Writer, cfg *Config) error {
 	return enc.Encode(raw)
 }
 
-func mustLoadDefaults(t *testing.T) *Config {
+func mustLoadFixture(t *testing.T) *Config {
 	t.Helper()
-	cfg, err := loadDefaults()
+	fsys := os.DirFS(fixturePath())
+	cfg, err := load(fsys, filepath.Join(".", "benchviz.yaml"), &Config{})
 	require.NoError(t, err)
+
 	return cfg
+}
+
+func fixturePath() string {
+	return filepath.Join("..", "..", "..", "examples", "testify")
 }
 
 func loadFromString(t *testing.T, yamlContent string) (*Config, error) {
@@ -859,7 +882,7 @@ func loadFromString(t *testing.T, yamlContent string) (*Config, error) {
 	dir := t.TempDir()
 	file := filepath.Join(dir, "config.yaml")
 	require.NoError(t, os.WriteFile(file, []byte(yamlContent), 0o600))
-	return load(os.DirFS(dir), "config.yaml")
+	return load(os.DirFS(dir), "config.yaml", &Config{})
 }
 
 func mustLoadTestConfig(t *testing.T, yamlContent string) *Config {
@@ -939,6 +962,116 @@ categories:
     includes:
       metrics: [nsPerOp]
 `
+}
+
+func TestLoadDefaults(t *testing.T) {
+	cfg, err := LoadDefaults()
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+	assert.Len(t, cfg.Metrics, 4)
+}
+
+func TestGenerate(t *testing.T) {
+	input := GenerateInput{
+		Functions: []string{
+			"BenchmarkGreater/generic/int-16",
+			"BenchmarkGreater/reflect/int-16",
+			"BenchmarkLess/generic/int-16",
+			"Benchmark_isEmpty-16",
+		},
+		Metrics: []MetricName{MetricNsPerOp, MetricAllocsPerOp},
+	}
+
+	cfg := Generate(input)
+
+	require.NotNil(t, cfg)
+
+	// verify functions
+	assert.Len(t, cfg.Functions, 4)
+	assert.Equal(t, "greater-generic-int", cfg.Functions[0].ID)
+	assert.Equal(t, "greater-reflect-int", cfg.Functions[1].ID)
+	assert.Equal(t, "less-generic-int", cfg.Functions[2].ID)
+	assert.Equal(t, "isempty", cfg.Functions[3].ID)
+
+	// verify metrics come from defaults
+	assert.Len(t, cfg.Metrics, 2)
+	assert.Equal(t, MetricNsPerOp, cfg.Metrics[0].ID)
+	assert.Equal(t, "Benchmark Timings", cfg.Metrics[0].Title)
+	assert.Equal(t, MetricAllocsPerOp, cfg.Metrics[1].ID)
+
+	// verify category
+	require.Len(t, cfg.Categories, 1)
+	assert.Equal(t, "all", cfg.Categories[0].ID)
+	assert.Len(t, cfg.Categories[0].Includes.Functions, 4)
+	assert.Len(t, cfg.Categories[0].Includes.Metrics, 2)
+
+	// verify rendering defaults inherited
+	assert.Equal(t, "roma", cfg.Render.Theme)
+	assert.Equal(t, "barchart", cfg.Render.Chart)
+}
+
+func TestGenerateDedup(t *testing.T) {
+	// same benchmark name twice should produce one function
+	input := GenerateInput{
+		Functions: []string{
+			"BenchmarkFoo-16",
+			"BenchmarkFoo-16",
+		},
+		Metrics: []MetricName{MetricNsPerOp},
+	}
+
+	cfg := Generate(input)
+	assert.Len(t, cfg.Functions, 1)
+}
+
+func TestEncodeYAML(t *testing.T) {
+	input := GenerateInput{
+		Functions: []string{
+			"BenchmarkGreater/generic/int-16",
+			"BenchmarkLess/generic/int-16",
+		},
+		Metrics: []MetricName{MetricNsPerOp, MetricAllocsPerOp},
+	}
+	cfg := Generate(input)
+
+	// write to file via EncodeYAML
+	dir := t.TempDir()
+	file := filepath.Join(dir, "generated.yaml")
+	f, err := os.Create(file)
+	require.NoError(t, err)
+
+	require.NoError(t, cfg.EncodeYAML(f))
+	require.NoError(t, f.Close())
+
+	// verify the YAML can be loaded back as a valid config
+	loaded, err := Load(file)
+	require.NoError(t, err)
+
+	assert.Len(t, loaded.Functions, 2)
+	assert.Len(t, loaded.Metrics, 2)
+	assert.Len(t, loaded.Categories, 1)
+	assert.Equal(t, "all", loaded.Categories[0].ID)
+}
+
+func TestBenchNameToID(t *testing.T) {
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"BenchmarkGreater/generic/int-16", "greater-generic-int"},
+		{"BenchmarkGreater/reflect/int-16", "greater-reflect-int"},
+		{"Benchmark_isEmpty-16", "isempty"},
+		{"BenchmarkFoo", "foo"},
+		{"BenchmarkFoo-8", "foo"},
+		{"BenchmarkElementsMatch/generic/large_1000-16", "elementsmatch-generic-large-1000"},
+		{"BenchmarkNotNil-16", "notnil"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			assert.Equal(t, tt.want, benchNameToID(tt.input))
+		})
+	}
 }
 
 func configWithFiles() string {

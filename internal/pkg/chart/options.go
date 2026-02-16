@@ -21,9 +21,9 @@ type options struct {
 }
 
 // WithTitle sets the chart title.
-func WithTitle(subtitle string) Option {
+func WithTitle(title string) Option {
 	return func(c *options) {
-		c.Title = subtitle
+		c.Title = title
 	}
 }
 
@@ -66,7 +66,7 @@ func WithHorizontal(enabled bool) Option {
 	}
 }
 
-func applyOptionsWithDefaults(opts []Option) options {
+func optionsWithDefaults(opts []Option) options {
 	o := options{
 		Theme:      ThemeRoma,
 		ShowLegend: true,

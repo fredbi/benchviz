@@ -1,6 +1,8 @@
 package organizer
 
 import (
+	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/fredbi/benchviz/internal/pkg/config"
@@ -25,14 +27,22 @@ func New(cfg *config.Config, _ ...Option) *Organizer {
 }
 
 // Scenarize a set of parsed benchmark data into a visualization [model.Scenario].
-func (v *Organizer) Scenarize(sets []parser.Set) *model.Scenario {
-	newSet := v.parseBenchmarks(sets)
+func (v *Organizer) Scenarize(sets []parser.Set) (*model.Scenario, error) {
+	newSet, err := v.parseBenchmarks(sets)
+	if err != nil {
+		return nil, err
+	}
 
-	return v.populateCategories(newSet)
+	scenario, err := v.populateCategories(newSet)
+	if err != nil {
+		return nil, err
+	}
+
+	return scenario, nil
 }
 
 // parseBenchmarks extracts structured data from raw benchmark results.
-func (v *Organizer) parseBenchmarks(sets []parser.Set) *BenchmarkSet {
+func (v *Organizer) parseBenchmarks(sets []parser.Set) (*BenchmarkSet, error) {
 	var benchmarks []ParsedBenchmark
 
 	for _, set := range sets {
@@ -44,46 +54,34 @@ func (v *Organizer) parseBenchmarks(sets []parser.Set) *BenchmarkSet {
 				parsed, ok := v.parseBenchmarkName(bench.Name, file, env)
 				if !ok {
 					v.l.Warn("benchmark not ingested", slog.String("file", file), slog.String("benchmark_name", bench.Name))
+					if v.cfg.IsStrict {
+						err := fmt.Errorf("strict requirement not met for benchmark %q: not ingested. Stopping here", bench.Name)
+						v.l.Error("strict requirement not met", slog.String("error", err.Error()))
+
+						return nil, err
+					}
 
 					continue
 				}
 
 				var resolved bool
-				if metric, ok := v.cfg.GetMetric(config.MetricNsPerOp); ok {
-					parsed.Metric = metric.ID
-					parsed.Name = metric.Title
-					parsed.Value = bench.NsPerOp
-					benchmarks = append(benchmarks, parsed)
-					resolved = true
-				}
-
-				if metric, ok := v.cfg.GetMetric(config.MetricAllocsPerOp); ok {
-					parsed.Metric = metric.ID
-					parsed.Name = metric.Title
-					parsed.Value = bench.NsPerOp
-					parsed.Value = float64(bench.AllocsPerOp)
-					benchmarks = append(benchmarks, parsed)
-					resolved = true
-				}
-
-				if metric, ok := v.cfg.GetMetric(config.MetricBytesPerOp); ok {
-					parsed.Metric = metric.ID
-					parsed.Name = metric.Title
-					parsed.Value = float64(bench.AllocedBytesPerOp)
-					benchmarks = append(benchmarks, parsed)
-					resolved = true
-				}
-
-				if metric, ok := v.cfg.GetMetric(config.MetricMBPerS); ok {
-					parsed.Metric = metric.ID
-					parsed.Name = metric.Title
-					parsed.Value = float64(bench.MBPerS)
-					benchmarks = append(benchmarks, parsed)
-					resolved = true
-				}
+				benchmarks, ok = v.resolveMetric(config.MetricNsPerOp, parsed, bench.NsPerOp, benchmarks)
+				resolved = resolved || ok
+				benchmarks, ok = v.resolveMetric(config.MetricAllocsPerOp, parsed, float64(bench.AllocsPerOp), benchmarks)
+				resolved = resolved || ok
+				benchmarks, ok = v.resolveMetric(config.MetricBytesPerOp, parsed, float64(bench.AllocedBytesPerOp), benchmarks)
+				resolved = resolved || ok
+				benchmarks, ok = v.resolveMetric(config.MetricMBPerS, parsed, bench.MBPerS, benchmarks)
+				resolved = resolved || ok
 
 				if !resolved {
 					v.l.Warn("no benchmark metric ingested", slog.String("file", file), slog.String("benchmark_name", bench.Name))
+					if v.cfg.IsStrict {
+						err := fmt.Errorf("strict requirement not met for benchmark %q: empty series. Stopping here", bench.Name)
+						v.l.Error("strict requirement not met", slog.String("error", err.Error()))
+
+						return nil, err
+					}
 				}
 			}
 		}
@@ -91,14 +89,59 @@ func (v *Organizer) parseBenchmarks(sets []parser.Set) *BenchmarkSet {
 
 	if len(benchmarks) == 0 {
 		v.l.Warn("benchmark set is empty")
+		if v.cfg.IsStrict {
+			err := errors.New("strict requirement not met for benchmark %q: empty benchmark set. Stopping here")
+			v.l.Error("strict requirement not met", slog.String("error", err.Error()))
+
+			return nil, err
+		}
 	}
 
 	return &BenchmarkSet{
 		Set: benchmarks,
-	}
+	}, nil
 }
 
-func (v *Organizer) populateCategories(set *BenchmarkSet) *model.Scenario {
+func (v *Organizer) resolveMetric(search config.MetricName, parsed ParsedBenchmark, value float64, benchmarks []ParsedBenchmark) ([]ParsedBenchmark, bool) {
+	if metric, ok := v.cfg.GetMetric(search); ok {
+		parsed.Metric = metric.ID
+		parsed.Name = metric.Title
+		parsed.Value = value
+		benchmarks = append(benchmarks, parsed)
+
+		return benchmarks, true
+	}
+
+	return benchmarks, false
+}
+
+/*
+	if metric, ok := v.cfg.GetMetric(config.MetricAllocsPerOp); ok {
+		parsed.Metric = metric.ID
+		parsed.Name = metric.Title
+		parsed.Value = float64(bench.AllocsPerOp)
+		benchmarks = append(benchmarks, parsed)
+		resolved = true
+	}
+
+	if metric, ok := v.cfg.GetMetric(config.MetricBytesPerOp); ok {
+		parsed.Metric = metric.ID
+		parsed.Name = metric.Title
+		parsed.Value = float64(bench.AllocedBytesPerOp)
+		benchmarks = append(benchmarks, parsed)
+		resolved = true
+	}
+
+	if metric, ok := v.cfg.GetMetric(config.MetricMBPerS); ok {
+		parsed.Metric = metric.ID
+		parsed.Name = metric.Title
+		parsed.Value = float64(bench.MBPerS)
+		benchmarks = append(benchmarks, parsed)
+		resolved = true
+	}
+*/
+
+func (v *Organizer) populateCategories(set *BenchmarkSet) (*model.Scenario, error) {
 	scenario := &model.Scenario{
 		Name:       v.cfg.Name,
 		Categories: make([]model.Category, 0, len(v.cfg.Categories)),
@@ -128,6 +171,13 @@ func (v *Organizer) populateCategories(set *BenchmarkSet) *model.Scenario {
 
 		if len(category.Data) == 0 {
 			v.l.Warn("no data resolved for category", slog.String("category", category.ID))
+			if v.cfg.IsStrict {
+				err := fmt.Errorf("strict requirement not met for category %q: no data for category. Stopping here", category.ID)
+				v.l.Error("strict requirement not met", slog.String("error", err.Error()))
+
+				return nil, err
+			}
+
 			continue
 		}
 
@@ -136,7 +186,7 @@ func (v *Organizer) populateCategories(set *BenchmarkSet) *model.Scenario {
 
 	v.l.Info("resolved categories", slog.Int("categories", len(scenario.Categories)))
 
-	return scenario
+	return scenario, nil
 }
 
 // parseBenchmarkName extracts function, version, and context from a benchmark name.

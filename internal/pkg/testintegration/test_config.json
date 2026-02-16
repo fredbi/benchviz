@@ -1,6 +1,7 @@
 {
   "Name": "testify generics benchmarks",
-  "IsJSON": true,
+  "IsJSON": false,
+  "IsStrict": false,
   "Environment": "",
   "Render": {
     "Title": "Benchark",
@@ -13,7 +14,12 @@
     "Legend": "bottom",
     "Scale": "auto",
     "DualScale": false,
-    "Orientation": "horizontal"
+    "Orientation": "horizontal",
+    "Screenshot": {
+      "Height": 0,
+      "Width": 0,
+      "Sleep": ""
+    }
   },
   "Outputs": {
     "HTMLFile": "",

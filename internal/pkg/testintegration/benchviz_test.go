@@ -43,7 +43,8 @@ func TestBenchviz(t *testing.T) {
 						writeData(t, "test_pre_scenario.json", parsed)
 					*/
 
-					scenario := o.Scenarize(sets)
+					scenario, err := o.Scenarize(sets)
+					require.NoError(t, err)
 					writeData(t, "test_scenario.json", scenario)
 
 					t.Run("should build page", func(t *testing.T) {

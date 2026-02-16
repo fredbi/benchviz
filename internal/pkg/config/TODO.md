@@ -1,1 +1,0 @@
-* merge config with defaults

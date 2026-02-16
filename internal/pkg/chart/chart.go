@@ -28,7 +28,7 @@ type Chart struct {
 // NewChart creates a new chart with the given title and y-axis label.
 func NewChart(opts ...Option) *Chart {
 	return &Chart{
-		options: applyOptionsWithDefaults(opts),
+		options: optionsWithDefaults(opts),
 	}
 }
 

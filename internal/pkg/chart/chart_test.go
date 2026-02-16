@@ -27,7 +27,8 @@ func TestSmokeRenderFromTestdata(t *testing.T) {
 
 	// Organize into a scenario
 	org := organizer.New(cfg)
-	scenario := org.Scenarize(p.Sets())
+	scenario, err := org.Scenarize(p.Sets())
+	require.NoError(t, err)
 	require.NotNil(t, scenario)
 
 	// Build the chart page
@@ -66,7 +67,8 @@ func TestSmokeRenderTextFormat(t *testing.T) {
 	require.NoError(t, p.ParseFiles(parserTestdataPath("run.txt")))
 
 	org := organizer.New(cfg)
-	scenario := org.Scenarize(p.Sets())
+	scenario, err := org.Scenarize(p.Sets())
+	require.NoError(t, err)
 
 	builder := New(cfg, scenario)
 	page := builder.BuildPage()

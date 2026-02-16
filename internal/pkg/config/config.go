@@ -3,11 +3,13 @@ package config
 import (
 	"embed"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/go-viper/mapstructure/v2"
 	"go.yaml.in/yaml/v3"
@@ -21,10 +23,11 @@ var efs embed.FS
 // Config holds the configuration for benchviz.
 type Config struct {
 	Name        string
-	IsJSON      bool
+	IsJSON      bool `mapstructure:"-"`
+	IsStrict    bool `mapstructure:"-"`
 	Environment string
 	Render      Rendering
-	Outputs     Output
+	Outputs     Output `mapstructure:"-"`
 	Metrics     []Metric
 	Functions   []Function
 	Contexts    []Context
@@ -125,6 +128,29 @@ func (c Config) FindContextFromFile(file string) (id string, ok bool) {
 	return "", false
 }
 
+// EncodeYAML outputs a YAML-friendly representation of [Config] for marshaling.
+// EncodeYAML serializes a [Config] to YAML into the provided writer.
+//
+// Runtime-only fields (IsJSON, IsStrict, Outputs) are excluded from the output.
+func (c *Config) EncodeYAML(w io.Writer) error {
+	var raw map[string]any
+
+	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Squash: true,
+		Deep:   true,
+		Result: &raw,
+	})
+	if err != nil {
+		return fmt.Errorf("creating mapstructure decoder: %w", err)
+	}
+
+	if err := dec.Decode(c); err != nil {
+		return fmt.Errorf("decoding config to map: %w", err)
+	}
+
+	return yaml.NewEncoder(w).Encode(raw)
+}
+
 type Rendering struct {
 	Title       string
 	Theme       string
@@ -134,6 +160,7 @@ type Rendering struct {
 	Scale       Scale
 	DualScale   bool
 	Orientation Orientation
+	Screenshot  Screenshot
 }
 
 type Orientation string
@@ -142,6 +169,21 @@ const (
 	OrientationVertical   Orientation = "vertical"
 	OrientationHorizontal Orientation = "horizontal"
 )
+
+type Screenshot struct {
+	Height int64
+	Width  int64
+	Sleep  string
+}
+
+func (s Screenshot) SleepDuration() time.Duration {
+	d, err := time.ParseDuration(s.Sleep)
+	if d == 0 || err != nil {
+		return 0
+	}
+
+	return d
+}
 
 type File struct {
 	ID        string
@@ -240,15 +282,15 @@ func (o Object) MatchString(name string) (id string, ok bool) {
 }
 
 type Function struct {
-	Object `mapstructure:",squash"`
+	Object `mapstructure:",deep,squash"`
 }
 
 type Context struct {
-	Object `mapstructure:",squash"`
+	Object `mapstructure:",deep,squash"`
 }
 
 type Version struct {
-	Object `mapstructure:",squash"`
+	Object `mapstructure:",deep,squash"`
 }
 
 type Category struct {
@@ -266,15 +308,28 @@ type Includes struct {
 
 // Load a configuration file from the local file system.
 func Load(file string) (*Config, error) {
-	return load(os.DirFS(filepath.Dir(file)), filepath.Join(".", filepath.Base(file)))
+	cfg, err := loadDefaults()
+	if err != nil {
+		return nil, fmt.Errorf("loading default config: %w", err)
+	}
+
+	fsys := os.DirFS(filepath.Dir(file))
+	pth := filepath.Join(".", filepath.Base(file))
+
+	return load(fsys, pth, cfg)
+}
+
+// LoadDefaults loads the default configuration from the embedded default_config.yaml.
+func LoadDefaults() (*Config, error) {
+	return loadDefaults()
 }
 
 // loadDefaults loads the default configuration from embedded FS.
 func loadDefaults() (*Config, error) {
-	return load(efs, "default_config.yaml")
+	return load(efs, "default_config.yaml", &Config{})
 }
 
-func load(fsys fs.FS, file string) (*Config, error) {
+func load(fsys fs.FS, file string, cfg *Config) (*Config, error) {
 	content, err := fs.ReadFile(fsys, file)
 	if err != nil {
 		return nil, err
@@ -286,9 +341,7 @@ func load(fsys fs.FS, file string) (*Config, error) {
 		return nil, err
 	}
 
-	var cfg Config
-
-	err = mapstructure.Decode(raw, &cfg)
+	err = mapstructure.Decode(raw, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +376,7 @@ func load(fsys fs.FS, file string) (*Config, error) {
 		return nil, err
 	}
 
-	return &cfg, nil
+	return cfg, nil
 }
 
 func (c *Config) validateFunctions() error {
@@ -590,4 +643,127 @@ func titleize[T str](in T) string {
 		}
 	}, string(in),
 	))
+}
+
+// GenerateInput holds the data needed by [Generate] to build a config
+// from parsed benchmark results.
+//
+// This avoids importing the parser package (which imports config).
+type GenerateInput struct {
+	Functions []string
+	Metrics   []MetricName
+}
+
+// Generate builds a [Config] from parsed benchmark data.
+//
+// It creates one function entry per unique benchmark name, includes all detected metrics,
+// and bundles everything into a single "all" category.
+func Generate(input GenerateInput) *Config {
+	defaults, err := loadDefaults()
+	if err != nil {
+		// embedded config must always parse
+		panic(fmt.Sprintf("loading embedded defaults: %v", err))
+	}
+
+	cfg := &Config{
+		Name:   "Generated Config",
+		Render: defaults.Render,
+	}
+
+	// build default metric info map from defaults
+	defaultMetrics := make(map[MetricName]Metric, len(defaults.Metrics))
+	for _, m := range defaults.Metrics {
+		defaultMetrics[m.ID] = m
+	}
+
+	// metrics
+	for _, name := range input.Metrics {
+		if dm, ok := defaultMetrics[name]; ok {
+			cfg.Metrics = append(cfg.Metrics, dm)
+		} else {
+			cfg.Metrics = append(cfg.Metrics, Metric{
+				ID:    name,
+				Title: titleize(name),
+			})
+		}
+	}
+
+	// functions
+	seen := make(map[string]struct{})
+	for _, name := range input.Functions {
+		id := benchNameToID(name)
+		if _, dup := seen[id]; dup {
+			continue
+		}
+		seen[id] = struct{}{}
+
+		cfg.Functions = append(cfg.Functions, Function{
+			Object: Object{
+				ID:    id,
+				Title: titleize(id),
+				Match: regexp.QuoteMeta(name),
+			},
+		})
+	}
+
+	// single category bundling everything
+	funcIDs := make([]string, 0, len(cfg.Functions))
+	for _, f := range cfg.Functions {
+		funcIDs = append(funcIDs, f.ID)
+	}
+
+	metricIDs := make([]MetricName, 0, len(cfg.Metrics))
+	for _, m := range cfg.Metrics {
+		metricIDs = append(metricIDs, m.ID)
+	}
+
+	cfg.Categories = []Category{
+		{
+			ID:    "all",
+			Title: "All Benchmarks ({metric})",
+			Includes: Includes{
+				Functions: funcIDs,
+				Metrics:   metricIDs,
+			},
+		},
+	}
+
+	return cfg
+}
+
+// benchNameToID converts a benchmark function name to a kebab-case ID.
+//
+// It strips the "Benchmark" prefix and the GOMAXPROCS suffix (e.g. "-16").
+func benchNameToID(name string) string {
+	// strip "Benchmark" prefix
+	id := strings.TrimPrefix(name, "Benchmark")
+	// strip leading underscore (e.g. Benchmark_isEmpty -> isEmpty)
+	id = strings.TrimPrefix(id, "_")
+
+	// strip GOMAXPROCS suffix like "-16"
+	if idx := strings.LastIndex(id, "-"); idx > 0 {
+		suffix := id[idx+1:]
+		allDigits := true
+		for _, r := range suffix {
+			if r < '0' || r > '9' {
+				allDigits = false
+				break
+			}
+		}
+		if allDigits && len(suffix) > 0 {
+			id = id[:idx]
+		}
+	}
+
+	// convert slashes and underscores to hyphens, lowercase
+	id = strings.Map(func(r rune) rune {
+		switch r {
+		case '/', '_':
+			return '-'
+		default:
+			return r
+		}
+	}, id)
+
+	return strings.ToLower(id)
 }

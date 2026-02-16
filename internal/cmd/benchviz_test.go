@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/fredbi/benchviz/internal/pkg/config"
+
 	"github.com/go-openapi/testify/v2/assert"
 	"github.com/go-openapi/testify/v2/require"
 )
@@ -17,7 +18,7 @@ func TestNewCommand(t *testing.T) {
 	require.NotNil(t, cli)
 	assert.NotNil(t, cli.L)
 	// Verify defaults from registerFlags
-	assert.Equal(t, "config.yaml", cli.Config)
+	assert.Equal(t, "benchviz.yaml", cli.Config)
 	assert.Equal(t, "-", cli.OutputFile)
 }
 
@@ -105,6 +106,7 @@ func TestSetConfigOutputFileWithPng(t *testing.T) {
 	}
 	cli := &Command{
 		OutputFile: "results.html",
+		Png:        true,
 		L:          newTestLogger(),
 	}
 
@@ -238,6 +240,67 @@ func TestExecuteMissingInput(t *testing.T) {
 		Config:     cfgFile,
 		OutputFile: filepath.Join(t.TempDir(), "output.html"),
 		L:          newTestLogger(),
+	}
+
+	require.Error(t, cli.Execute("/nonexistent/file.txt"))
+}
+
+func TestGenerateConfigJSON(t *testing.T) {
+	outFile := filepath.Join(t.TempDir(), "generated.yaml")
+
+	cli := &Command{
+		Config:         outFile,
+		IsJSON:         true,
+		GenerateConfig: true,
+		L:              newTestLogger(),
+	}
+
+	require.NoError(t, cli.Execute(parserTestdataPath("sample_generics.json")))
+
+	// Verify the file was created
+	info, err := os.Stat(outFile)
+	require.NoError(t, err)
+	assert.NotZero(t, info.Size())
+
+	// Verify it loads as a valid config
+	cfg, err := config.Load(outFile)
+	require.NoError(t, err)
+	assert.NotEmpty(t, cfg.Functions)
+	assert.NotEmpty(t, cfg.Metrics)
+	assert.NotEmpty(t, cfg.Categories)
+}
+
+func TestGenerateConfigText(t *testing.T) {
+	outFile := filepath.Join(t.TempDir(), "generated.yaml")
+
+	cli := &Command{
+		Config:         outFile,
+		GenerateConfig: true,
+		L:              newTestLogger(),
+	}
+
+	require.NoError(t, cli.Execute(
+		parserTestdataPath("run.txt"),
+		parserTestdataPath("run1.txt"),
+	))
+
+	info, err := os.Stat(outFile)
+	require.NoError(t, err)
+	assert.NotZero(t, info.Size())
+
+	cfg, err := config.Load(outFile)
+	require.NoError(t, err)
+	assert.NotEmpty(t, cfg.Functions)
+	assert.NotEmpty(t, cfg.Metrics)
+}
+
+func TestGenerateConfigMissingInput(t *testing.T) {
+	outFile := filepath.Join(t.TempDir(), "generated.yaml")
+
+	cli := &Command{
+		Config:         outFile,
+		GenerateConfig: true,
+		L:              newTestLogger(),
 	}
 
 	require.Error(t, cli.Execute("/nonexistent/file.txt"))

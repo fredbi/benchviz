@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/fredbi/benchviz/internal/pkg/chart"
 	"github.com/fredbi/benchviz/internal/pkg/config"
@@ -21,20 +20,25 @@ import (
 
 // Command holds command line flags and executes the benchviz command.
 //
-// It knows how to load a configuration file in a [config.Config] and manage CLI flag configuration overrides.
+// It knows how to load a configuration file in a [config.Config] and how to manage CLI flag configuration overrides.
 //
-// The main purpose of this package is to deal with io's: opening and closing files.
+// It orchestrates the flow of actions from other packages.
 //
-// All other invoked functionalities deal with streams, except the benchmark parser which may collect several files
-// directly.
+// This package is responsible for dealing with io's: opening and closing files, handling standard input or output
+// versus plain files.
+//
+// All other invoked functionalities deal with streams ([io.Reader],[io.Writer]).
+// Exception the benchmark parser may collect several files directly.
 type Command struct {
-	Config      string
-	OutputFile  string
-	IsJSON      bool
-	Environment string
-	Report      bool
-	Png         bool
-	L           *slog.Logger
+	Config         string
+	OutputFile     string
+	IsJSON         bool
+	Environment    string
+	Report         bool
+	GenerateConfig bool
+	Png            bool
+	IsStrict       bool
+	L              *slog.Logger
 }
 
 // NewCommand builds a CLI command with registered flags and an injected logger.
@@ -69,6 +73,10 @@ func (c *Command) Execute(args ...string) error {
 	}
 	if len(args) == 0 { // no file is provided: assume stdin
 		args = append(args, "-")
+	}
+
+	if c.GenerateConfig {
+		return c.generateConfig(args)
 	}
 
 	cfg, cleanup, err := c.prepareConfig()
@@ -120,7 +128,12 @@ func (c *Command) Execute(args ...string) error {
 
 	defer pngCloser()
 
-	r := image.New()
+	r := image.New(
+		// if not set, the default values are those from package image
+		image.WithHeight(cfg.Render.Screenshot.Height),
+		image.WithWidth(cfg.Render.Screenshot.Width),
+		image.WithSleep(cfg.Render.Screenshot.SleepDuration()),
+	)
 
 	if err = r.Render(pngWriter, htmlReader); err != nil {
 		return fmt.Errorf("rendering image: %w", err)
@@ -133,14 +146,17 @@ func (*Command) args() []string {
 	return flag.CommandLine.Args()
 }
 
+// registerFlags registers the CLI flags globally.
 func (c *Command) registerFlags() {
 	defaults := Command{
-		Config:      "benchviz.yaml",
-		OutputFile:  "-",
-		Png:         false,
-		IsJSON:      false,
-		Environment: "",
-		Report:      false,
+		Config:         "benchviz.yaml",
+		OutputFile:     "-",
+		Png:            false,
+		IsJSON:         false,
+		Environment:    "",
+		Report:         false,
+		GenerateConfig: false,
+		IsStrict:       false,
 	}
 
 	flag.BoolVar(&c.IsJSON, "json", defaults.IsJSON, "read input from JSON")
@@ -150,9 +166,11 @@ func (c *Command) registerFlags() {
 	flag.StringVar(&c.OutputFile, "o", defaults.OutputFile, "file output or - for standard output (shorthand)")
 	flag.StringVar(&c.Environment, "environment", defaults.Environment, "environment string")
 	flag.StringVar(&c.Environment, "e", defaults.Environment, "environment string (shorthand)")
-	flag.BoolVar(&c.Report, "r", defaults.Report, "report benchmark contents only, no rendering (shorthand)")
+	flag.BoolVar(&c.Report, "r", defaults.Report, "report about benchmark contents only to standard output, no rendering (shorthand)")
 	flag.BoolVar(&c.Report, "report", defaults.Report, "report benchmark contents only")
 	flag.BoolVar(&c.Png, "png", defaults.Png, "enable PNG screenshot output")
+	flag.BoolVar(&c.Png, "strict", defaults.IsStrict, "fails if some benchmark series are omitted by config (default is to warn and skip)")
+	flag.BoolVar(&c.GenerateConfig, "generate-config", defaults.GenerateConfig, "generate a naive config file from benchmark data and exit")
 }
 
 func (c *Command) prepareConfig() (cfg *config.Config, cleanup func(), err error) {
@@ -179,6 +197,9 @@ func (c *Command) prepareConfig() (cfg *config.Config, cleanup func(), err error
 // apply CLI flags overrides to YAML config.
 func (c *Command) setConfig(cfg *config.Config) error {
 	cfg.IsJSON = c.IsJSON
+	if c.IsStrict {
+		cfg.IsStrict = true
+	}
 
 	if c.Environment != "" {
 		cfg.Environment = c.Environment
@@ -187,12 +208,13 @@ func (c *Command) setConfig(cfg *config.Config) error {
 	if c.OutputFile != "" && c.OutputFile != "-" {
 		// an outfile is defined: infer the PNG file from the HTML file provided
 		cfg.Outputs.HTMLFile = inferHTMLFile(c.OutputFile)
-		if cfg.Outputs.PngFile == "" && c.Png {
+		if c.Png {
 			cfg.Outputs.PngFile = inferImageFile(cfg.Outputs.HTMLFile)
 		}
 	}
 
 	if c.Report {
+		// no need to prepare output files since the report is sent to stdout
 		return nil
 	}
 
@@ -220,16 +242,55 @@ func (c *Command) setConfig(cfg *config.Config) error {
 // report produces a report that explores the input benchmarks.
 func (c *Command) report(cfg *config.Config, args []string) error {
 	p := parser.New(cfg, parser.WithParseJSON(cfg.IsJSON))
-	t0 := time.Now()
 	if err := p.ParseFiles(args...); err != nil {
 		return fmt.Errorf("parsing files: %w", err)
 	}
-	c.L.Info("parsed input benchmarks", slog.Duration("duration", time.Now().Sub(t0)))
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", " ")
 
 	return enc.Encode(p.Report())
+}
+
+// generateConfig parses benchmark files using defaults, generates a config, and writes it.
+func (c *Command) generateConfig(args []string) error {
+	cfg, err := config.LoadDefaults()
+	if err != nil {
+		return fmt.Errorf("loading defaults: %w", err)
+	}
+	cfg.IsJSON = c.IsJSON
+
+	p := parser.New(cfg, parser.WithParseJSON(cfg.IsJSON))
+	if err := p.ParseFiles(args...); err != nil {
+		return fmt.Errorf("parsing files: %w", err)
+	}
+
+	report := p.Report()
+
+	metricNames := make([]config.MetricName, 0, len(report.Metrics))
+	for _, m := range report.Metrics {
+		metricNames = append(metricNames, m.Metric)
+	}
+
+	generated := config.Generate(config.GenerateInput{
+		Functions: report.Functions,
+		Metrics:   metricNames,
+	})
+
+	outPath := c.Config
+	f, err := os.Create(outPath)
+	if err != nil {
+		return fmt.Errorf("creating config file %q: %w", outPath, err)
+	}
+	defer f.Close()
+
+	if err := generated.EncodeYAML(f); err != nil {
+		return fmt.Errorf("encoding config: %w", err)
+	}
+
+	c.L.Info("generated config written", slog.String("file", outPath))
+
+	return nil
 }
 
 func getReader(file, kind string) (rdr *os.File, cleanup func(), err error) {
@@ -267,7 +328,10 @@ func buildPage(cfg *config.Config, args []string) (*chart.Page, error) {
 
 	// 2. re-organize the data series according to the configuration
 	o := organizer.New(cfg)
-	scenario := o.Scenarize(p.Sets())
+	scenario, err := o.Scenarize(p.Sets())
+	if err != nil {
+		return nil, fmt.Errorf("building scenario: %w", err)
+	}
 
 	// 3. build a page with this visualization scenario
 	builder := chart.New(cfg, scenario)

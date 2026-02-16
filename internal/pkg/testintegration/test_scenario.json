@@ -4,7 +4,7 @@
     {
       "ID": "comparisons",
       "Title": "{metric} (comparisons)",
-      "Environment": "linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor",
+      "Environment": "",
       "Data": [
         {
           "Version": {
@@ -25,64 +25,7 @@
               "Context": "",
               "Metric": "nsPerOp",
               "Title": "reflect",
-              "Points": [
-                {
-                  "Function": "greater",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "greater - reflect - int",
-                  "Value": 201.2
-                },
-                {
-                  "Function": "greater",
-                  "Version": "reflect",
-                  "Context": "float64",
-                  "Metric": "nsPerOp",
-                  "Name": "greater - reflect - float64",
-                  "Value": 395.9
-                },
-                {
-                  "Function": "greater",
-                  "Version": "reflect",
-                  "Context": "string",
-                  "Metric": "nsPerOp",
-                  "Name": "greater - reflect - string",
-                  "Value": 182.2
-                },
-                {
-                  "Function": "less",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "less - reflect - int",
-                  "Value": 187.7
-                },
-                {
-                  "Function": "positive",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "positive - reflect - int",
-                  "Value": 141
-                },
-                {
-                  "Function": "positive",
-                  "Version": "reflect",
-                  "Context": "float64",
-                  "Metric": "nsPerOp",
-                  "Name": "positive - reflect - float64",
-                  "Value": 268.6
-                },
-                {
-                  "Function": "negative",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "negative - reflect - int",
-                  "Value": 167
-                }
-              ]
+              "Points": null
             }
           ]
         },
@@ -105,64 +48,7 @@
               "Context": "",
               "Metric": "nsPerOp",
               "Title": "generics",
-              "Points": [
-                {
-                  "Function": "greater",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "greater - generics - int",
-                  "Value": 5.412
-                },
-                {
-                  "Function": "greater",
-                  "Version": "generics",
-                  "Context": "float64",
-                  "Metric": "nsPerOp",
-                  "Name": "greater - generics - float64",
-                  "Value": 6.353
-                },
-                {
-                  "Function": "greater",
-                  "Version": "generics",
-                  "Context": "string",
-                  "Metric": "nsPerOp",
-                  "Name": "greater - generics - string",
-                  "Value": 8.335
-                },
-                {
-                  "Function": "less",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "less - generics - int",
-                  "Value": 5.377
-                },
-                {
-                  "Function": "positive",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "positive - generics - int",
-                  "Value": 4.326
-                },
-                {
-                  "Function": "positive",
-                  "Version": "generics",
-                  "Context": "float64",
-                  "Metric": "nsPerOp",
-                  "Name": "positive - generics - float64",
-                  "Value": 4.588
-                },
-                {
-                  "Function": "negative",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "nsPerOp",
-                  "Name": "negative - generics - int",
-                  "Value": 4.075
-                }
-              ]
+              "Points": null
             }
           ]
         },
@@ -185,64 +71,7 @@
               "Context": "",
               "Metric": "allocsPerOp",
               "Title": "reflect",
-              "Points": [
-                {
-                  "Function": "greater",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "greater - reflect - int",
-                  "Value": 1
-                },
-                {
-                  "Function": "greater",
-                  "Version": "reflect",
-                  "Context": "float64",
-                  "Metric": "allocsPerOp",
-                  "Name": "greater - reflect - float64",
-                  "Value": 1
-                },
-                {
-                  "Function": "greater",
-                  "Version": "reflect",
-                  "Context": "string",
-                  "Metric": "allocsPerOp",
-                  "Name": "greater - reflect - string",
-                  "Value": 1
-                },
-                {
-                  "Function": "less",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "less - reflect - int",
-                  "Value": 1
-                },
-                {
-                  "Function": "positive",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "positive - reflect - int",
-                  "Value": 1
-                },
-                {
-                  "Function": "positive",
-                  "Version": "reflect",
-                  "Context": "float64",
-                  "Metric": "allocsPerOp",
-                  "Name": "positive - reflect - float64",
-                  "Value": 1
-                },
-                {
-                  "Function": "negative",
-                  "Version": "reflect",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "negative - reflect - int",
-                  "Value": 1
-                }
-              ]
+              "Points": null
             }
           ]
         },
@@ -265,64 +94,7 @@
               "Context": "",
               "Metric": "allocsPerOp",
               "Title": "generics",
-              "Points": [
-                {
-                  "Function": "greater",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "greater - generics - int",
-                  "Value": 0
-                },
-                {
-                  "Function": "greater",
-                  "Version": "generics",
-                  "Context": "float64",
-                  "Metric": "allocsPerOp",
-                  "Name": "greater - generics - float64",
-                  "Value": 0
-                },
-                {
-                  "Function": "greater",
-                  "Version": "generics",
-                  "Context": "string",
-                  "Metric": "allocsPerOp",
-                  "Name": "greater - generics - string",
-                  "Value": 0
-                },
-                {
-                  "Function": "less",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "less - generics - int",
-                  "Value": 0
-                },
-                {
-                  "Function": "positive",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "positive - generics - int",
-                  "Value": 0
-                },
-                {
-                  "Function": "positive",
-                  "Version": "generics",
-                  "Context": "float64",
-                  "Metric": "allocsPerOp",
-                  "Name": "positive - generics - float64",
-                  "Value": 0
-                },
-                {
-                  "Function": "negative",
-                  "Version": "generics",
-                  "Context": "int",
-                  "Metric": "allocsPerOp",
-                  "Name": "negative - generics - int",
-                  "Value": 0
-                }
-              ]
+              "Points": null
             }
           ]
         }
@@ -331,7 +103,7 @@
     {
       "ID": "collections",
       "Title": "{metric} (collections)",
-      "Environment": "linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor",
+      "Environment": "",
       "Data": [
         {
           "Version": {
@@ -352,32 +124,7 @@
               "Context": "",
               "Metric": "nsPerOp",
               "Title": "reflect",
-              "Points": [
-                {
-                  "Function": "elements-match",
-                  "Version": "reflect",
-                  "Context": "small",
-                  "Metric": "nsPerOp",
-                  "Name": "elements-match - reflect - small",
-                  "Value": 3795
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "reflect",
-                  "Context": "medium",
-                  "Metric": "nsPerOp",
-                  "Name": "elements-match - reflect - medium",
-                  "Value": 322972
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "reflect",
-                  "Context": "large",
-                  "Metric": "nsPerOp",
-                  "Name": "elements-match - reflect - large",
-                  "Value": 30995386
-                }
-              ]
+              "Points": null
             }
           ]
         },
@@ -400,32 +147,7 @@
               "Context": "",
               "Metric": "nsPerOp",
               "Title": "generics",
-              "Points": [
-                {
-                  "Function": "elements-match",
-                  "Version": "generics",
-                  "Context": "small",
-                  "Metric": "nsPerOp",
-                  "Name": "elements-match - generics - small",
-                  "Value": 216.4
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "generics",
-                  "Context": "medium",
-                  "Metric": "nsPerOp",
-                  "Name": "elements-match - generics - medium",
-                  "Value": 5979
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "generics",
-                  "Context": "large",
-                  "Metric": "nsPerOp",
-                  "Name": "elements-match - generics - large",
-                  "Value": 443007
-                }
-              ]
+              "Points": null
             }
           ]
         },
@@ -448,32 +170,7 @@
               "Context": "",
               "Metric": "allocsPerOp",
               "Title": "reflect",
-              "Points": [
-                {
-                  "Function": "elements-match",
-                  "Version": "reflect",
-                  "Context": "small",
-                  "Metric": "allocsPerOp",
-                  "Name": "elements-match - reflect - small",
-                  "Value": 67
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "reflect",
-                  "Context": "medium",
-                  "Metric": "allocsPerOp",
-                  "Name": "elements-match - reflect - medium",
-                  "Value": 5153
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "reflect",
-                  "Context": "large",
-                  "Metric": "allocsPerOp",
-                  "Name": "elements-match - reflect - large",
-                  "Value": 501503
-                }
-              ]
+              "Points": null
             }
           ]
         },
@@ -496,32 +193,7 @@
               "Context": "",
               "Metric": "allocsPerOp",
               "Title": "generics",
-              "Points": [
-                {
-                  "Function": "elements-match",
-                  "Version": "generics",
-                  "Context": "small",
-                  "Metric": "allocsPerOp",
-                  "Name": "elements-match - generics - small",
-                  "Value": 2
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "generics",
-                  "Context": "medium",
-                  "Metric": "allocsPerOp",
-                  "Name": "elements-match - generics - medium",
-                  "Value": 3
-                },
-                {
-                  "Function": "elements-match",
-                  "Version": "generics",
-                  "Context": "large",
-                  "Metric": "allocsPerOp",
-                  "Name": "elements-match - generics - large",
-                  "Value": 3
-                }
-              ]
+              "Points": null
             }
           ]
         }

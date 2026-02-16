@@ -5,23 +5,21 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/device"
 )
 
-const (
-	defaultHeight = 1080
-	defaultWidth  = 1920
-)
-
 // Renderer knows how to take a screenshot from a HTML input and writes it as PNG.
-type Renderer struct{}
+type Renderer struct {
+	options
+}
 
 // New builds an image [Renderer] from HTML.
-func New() *Renderer {
-	return &Renderer{}
+func New(opts ...Option) *Renderer {
+	return &Renderer{
+		options: optionsWithDefaults(opts),
+	}
 }
 
 // Render a PNG image as a screenshot from a HTML input [io.Reader].
@@ -58,14 +56,14 @@ func (r *Renderer) screenshot(reader io.Reader) ([]byte, error) {
 
 	err = chromedp.Run(ctx,
 		chromedp.Emulate(device.Info{
-			Height:    defaultHeight,
-			Width:     defaultWidth,
+			Height:    r.Height,
+			Width:     r.Width,
 			Landscape: true,
 		}),
 		chromedp.Navigate("data:text/html,"+string(content)),
 		// chromedp.WaitVisible(`canvas`, chromedp.ByQueryAll),
 		// chromedp.WaitReady(`script  _, opts ...chromedp.QueryOption),
-		chromedp.Sleep(time.Second), // we need to wait some time to get the rendering done
+		chromedp.Sleep(r.SleepDuration), // we need to wait some time to get the rendering done
 		chromedp.FullScreenshot(&screenshot, qualityPNG),
 	)
 	if err != nil {

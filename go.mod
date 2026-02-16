@@ -4,6 +4,7 @@ go 1.25
 
 require (
 	github.com/chromedp/chromedp v0.14.2
+	github.com/davecgh/go-spew v1.1.1
 	github.com/go-echarts/go-echarts/v2 v2.6.7
 	github.com/go-openapi/testify/v2 v2.3.0
 	github.com/go-viper/mapstructure/v2 v2.5.0

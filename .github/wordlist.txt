@@ -2,10 +2,12 @@ CLI
 ECharts
 PNG
 TODO
+1s
 2x2
 4x3
 benchviz
 echarts
+io's
 pre
 scenarized
 stderr

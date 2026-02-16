@@ -118,8 +118,8 @@ func TestParseBenchmarks(t *testing.T) {
 
 	sets := []parser.Set{buildGenericsSet()}
 
-	benchSet := o.parseBenchmarks(sets)
-
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
 	require.NotEmpty(t, benchSet.Set)
 
 	// The config has 2 metrics (nsPerOp, allocsPerOp).
@@ -142,7 +142,8 @@ func TestParseBenchmarksEmpty(t *testing.T) {
 	cfg := mustLoadConfig(t, genericsConfig())
 	o := New(cfg)
 
-	benchSet := o.parseBenchmarks(nil)
+	benchSet, err := o.parseBenchmarks(nil)
+	require.NoError(t, err)
 	assert.Empty(t, benchSet.Set)
 }
 
@@ -158,7 +159,8 @@ func TestParseBenchmarksSkipsUnmatched(t *testing.T) {
 		},
 	}}
 
-	benchSet := o.parseBenchmarks(sets)
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
 	assert.Empty(t, benchSet.Set)
 }
 
@@ -167,7 +169,8 @@ func TestSeriesFor(t *testing.T) {
 	o := New(cfg)
 
 	sets := []parser.Set{buildGenericsSet()}
-	benchSet := o.parseBenchmarks(sets)
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
 
 	category := cfg.Categories[0]
 
@@ -192,7 +195,8 @@ func TestSeriesForNoMatch(t *testing.T) {
 	o := New(cfg)
 
 	sets := []parser.Set{buildGenericsSet()}
-	benchSet := o.parseBenchmarks(sets)
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
 
 	category := cfg.Categories[0]
 
@@ -208,9 +212,11 @@ func TestPopulateCategoriesBug(t *testing.T) {
 	o := New(cfg)
 
 	sets := []parser.Set{buildGenericsSet()}
-	benchSet := o.parseBenchmarks(sets)
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
 
-	scenario := o.populateCategories(benchSet)
+	scenario, err := o.populateCategories(benchSet)
+	require.NoError(t, err)
 
 	// Config has 1 category. With the bug, scenario.Categories has
 	// 1 empty + 1 real = 2 entries. Without the bug, just 1.
@@ -222,7 +228,8 @@ func TestScenarize(t *testing.T) {
 	o := New(cfg)
 
 	sets := []parser.Set{buildGenericsSet()}
-	scenario := o.Scenarize(sets)
+	scenario, err := o.Scenarize(sets)
+	require.NoError(t, err)
 
 	require.NotNil(t, scenario)
 	assert.Equal(t, "test-scenario", scenario.Name)
@@ -243,7 +250,8 @@ func TestScenarizeEnvironment(t *testing.T) {
 	o := New(cfg)
 
 	sets := []parser.Set{buildGenericsSet()}
-	scenario := o.Scenarize(sets)
+	scenario, err := o.Scenarize(sets)
+	require.NoError(t, err)
 
 	for _, cat := range scenario.Categories {
 		if cat.ID == "" {
@@ -257,7 +265,8 @@ func TestScenarizeEmptySets(t *testing.T) {
 	cfg := mustLoadConfig(t, genericsConfig())
 	o := New(cfg)
 
-	scenario := o.Scenarize(nil)
+	scenario, err := o.Scenarize(nil)
+	require.NoError(t, err)
 	require.NotNil(t, scenario)
 }
 
@@ -296,7 +305,8 @@ func TestSeriesForPointNames(t *testing.T) {
 	o := New(cfg)
 
 	sets := []parser.Set{buildGenericsSet()}
-	benchSet := o.parseBenchmarks(sets)
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
 
 	category := cfg.Categories[0]
 	series := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", category)
@@ -318,7 +328,8 @@ func TestMultipleVersionSeries(t *testing.T) {
 	o := New(cfg)
 
 	sets := []parser.Set{buildGenericsSet()}
-	benchSet := o.parseBenchmarks(sets)
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
 
 	category := cfg.Categories[0]
 
