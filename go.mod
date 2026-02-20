@@ -8,8 +8,8 @@ require (
 	github.com/go-openapi/testify/v2 v2.3.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	go.yaml.in/yaml/v3 v3.0.4
-	golang.org/x/text v0.33.0
-	golang.org/x/tools v0.41.0
+	golang.org/x/text v0.34.0
+	golang.org/x/tools v0.42.0
 )
 
 require (
@@ -21,5 +21,5 @@ require (
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
 )
