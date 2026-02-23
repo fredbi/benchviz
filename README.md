@@ -81,6 +81,14 @@ This tool leverages two fantastic libraries.
 	github.com/chromedp/chromedp 
   ```
 
+## TODOs & ROADMAP
+
+* environment capture doesn't get go version
+* modify shared workflows to support goreleaser
+* document config
+* example with URI (story across commits)
+* better layout for swag example
+
 <!-- Badges: status  -->
 [test-badge]: https://github.com/fredbi/benchviz/actions/workflows/go-test.yml/badge.svg
 [test-url]: https://github.com/fredbi/benchviz/actions/workflows/go-test.yml

@@ -18,7 +18,7 @@ import (
 
 func TestBenchviz(t *testing.T) {
 	t.Run("with testify example", func(t *testing.T) {
-		fixtureDir := filepath.Join("..", "..", "..", "examples", "testify")
+		fixtureDir := filepath.Join("..", "..", "examples", "testify")
 		t.Run("should load config", func(t *testing.T) {
 			cfg, err := config.Load(filepath.Join(fixtureDir, "benchviz.yaml"))
 			require.NoError(t, err)

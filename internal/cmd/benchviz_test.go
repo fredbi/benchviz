@@ -329,7 +329,7 @@ func mustLoadTestConfig(t *testing.T, yamlContent string) *config.Config {
 }
 
 func parserTestdataPath(name string) string {
-	return filepath.Join("..", "pkg", "parser", "testdata", name)
+	return filepath.Join("..", "parser", "testdata", name)
 }
 
 func testConfig() string {

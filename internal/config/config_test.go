@@ -875,7 +875,7 @@ func mustLoadFixture(t *testing.T) *Config {
 }
 
 func fixturePath() string {
-	return filepath.Join("..", "..", "..", "examples", "testify")
+	return filepath.Join("..", "..", "examples", "testify")
 }
 
 func loadFromString(t *testing.T, yamlContent string) (*Config, error) {
