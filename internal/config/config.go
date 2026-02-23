@@ -38,8 +38,7 @@ type Config struct {
 	functionIndex map[string]Function
 	contextIndex  map[string]Context
 	versionIndex  map[string]Version
-	metricIndex   map[MetricName]Metric
-	// TODO: provision default context, version for regexp mismatches
+	metricIndex map[MetricName]Metric
 }
 
 // GetFunction retrieves a function definition by its ID.

@@ -25,6 +25,8 @@ type options struct {
 	XAxisLabels    []string
 	YAxisLabel     string
 	Theme          string
+	Width          string
+	Height         string
 	ShowLegend     bool
 	LegendPosition string
 	Horizontal     bool
@@ -76,6 +78,14 @@ func WithXAxisLabels(xlabels []string) Option {
 func WithLegendPosition(pos string) Option {
 	return func(c *options) {
 		c.LegendPosition = pos
+	}
+}
+
+// WithSize sets the chart canvas width and height (e.g. "900px", "50%").
+func WithSize(width, height string) Option {
+	return func(c *options) {
+		c.Width = width
+		c.Height = height
 	}
 }
 

@@ -1,6 +1,7 @@
 package chart
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/fredbi/benchviz/internal/config"
@@ -58,7 +59,7 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 	title := category.TitleWithPlaceHolders(metric)
 	yAxis := metric.Title + " (" + metric.Axis + ")"
 
-	chart := NewChart(
+	opts := []Option{
 		WithTitle(title),
 		WithXAxisLabels(category.Labels()),
 		WithYAxisLabel(yAxis),
@@ -66,7 +67,13 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 		WithLegend(showLegend),
 		WithLegendPosition(string(b.cfg.Render.Legend)),
 		WithHorizontal(b.cfg.Render.Orientation == config.OrientationHorizontal),
-	)
+	}
+
+	if w, h := b.chartSize(); w != "" {
+		opts = append(opts, WithSize(w, h))
+	}
+
+	chart := NewChart(opts...)
 
 	for _, data := range category.Data { // iterate the series in a category
 		for _, series := range data.Series { // each category, iterate over series
@@ -85,4 +92,27 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 	}
 
 	return chart
+}
+
+// chartSize computes the chart canvas dimensions from the layout config.
+//
+// When Layout.Horizontal > 1, the width is divided among that many charts per row.
+// A small gap is subtracted so charts don't touch.
+func (b *Builder) chartSize() (width, height string) {
+	cols := b.cfg.Render.Layout.Horizontal
+	if cols <= 1 {
+		return "", "" // use go-echarts defaults (900px × 500px)
+	}
+
+	pct := 100 / cols
+	width = fmt.Sprintf("%d%%", pct)
+
+	rows := b.cfg.Render.Layout.Vertical
+	if rows > 1 {
+		// Divide viewport height among rows, capped at a reasonable minimum.
+		vpct := 100 / rows
+		height = fmt.Sprintf("%dvh", vpct)
+	}
+
+	return width, height
 }

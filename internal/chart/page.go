@@ -9,8 +9,6 @@ import (
 // Page represents a page containing multiple charts.
 //
 // A [Page] knows how to [Page.Render] as HTML.
-//
-// TODO: control page layout, e.g. 2x2, 4x3 etc.
 type Page struct {
 	Title  string
 	Charts []*Chart

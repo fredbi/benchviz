@@ -94,7 +94,11 @@ func (c *Chart) Build() *charts.Bar {
 
 	// Apply global options
 	bar.SetGlobalOptions(
-		charts.WithInitializationOpts(echartsopts.Initialization{Theme: c.Theme}),
+		charts.WithInitializationOpts(echartsopts.Initialization{
+			Theme:  c.Theme,
+			Width:  c.Width,
+			Height: c.Height,
+		}),
 		charts.WithToolboxOpts(toolboxOpts),
 		charts.WithTitleOpts(titleOpts),
 		charts.WithLegendOpts(legendOpts),
