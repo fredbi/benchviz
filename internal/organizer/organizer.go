@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/fredbi/benchviz/internal/pkg/config"
-	"github.com/fredbi/benchviz/internal/pkg/model"
-	"github.com/fredbi/benchviz/internal/pkg/parser"
+	"github.com/fredbi/benchviz/internal/config"
+	"github.com/fredbi/benchviz/internal/model"
+	"github.com/fredbi/benchviz/internal/parser"
 )
 
 // Organizer rearranges parsed benchmark data into a configured visualization scenario.

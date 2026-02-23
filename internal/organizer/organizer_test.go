@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/fredbi/benchviz/internal/pkg/config"
-	"github.com/fredbi/benchviz/internal/pkg/parser"
+	"github.com/fredbi/benchviz/internal/config"
+	"github.com/fredbi/benchviz/internal/parser"
 	"golang.org/x/tools/benchmark/parse"
 
 	"github.com/go-openapi/testify/v2/assert"

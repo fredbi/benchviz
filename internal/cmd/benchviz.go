@@ -12,11 +12,11 @@ import (
 	"path"
 	"strings"
 
-	"github.com/fredbi/benchviz/internal/pkg/chart"
-	"github.com/fredbi/benchviz/internal/pkg/config"
-	"github.com/fredbi/benchviz/internal/pkg/image"
-	"github.com/fredbi/benchviz/internal/pkg/organizer"
-	"github.com/fredbi/benchviz/internal/pkg/parser"
+	"github.com/fredbi/benchviz/internal/chart"
+	"github.com/fredbi/benchviz/internal/config"
+	"github.com/fredbi/benchviz/internal/image"
+	"github.com/fredbi/benchviz/internal/organizer"
+	"github.com/fredbi/benchviz/internal/parser"
 )
 
 // Command holds command line flags and executes the benchviz command.

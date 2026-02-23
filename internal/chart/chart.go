@@ -1,7 +1,7 @@
 package chart
 
 import (
-	"github.com/fredbi/benchviz/internal/pkg/model"
+	"github.com/fredbi/benchviz/internal/model"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	echartsopts "github.com/go-echarts/go-echarts/v2/opts"
 )

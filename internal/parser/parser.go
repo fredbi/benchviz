@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fredbi/benchviz/internal/pkg/config"
+	"github.com/fredbi/benchviz/internal/config"
 	"golang.org/x/tools/benchmark/parse"
 )
 

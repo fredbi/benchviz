@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fredbi/benchviz/internal/pkg/config"
+	"github.com/fredbi/benchviz/internal/config"
 
 	"github.com/go-openapi/testify/v2/assert"
 	"github.com/go-openapi/testify/v2/require"

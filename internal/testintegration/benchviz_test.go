@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/fredbi/benchviz/internal/pkg/chart"
-	"github.com/fredbi/benchviz/internal/pkg/config"
-	"github.com/fredbi/benchviz/internal/pkg/organizer"
-	"github.com/fredbi/benchviz/internal/pkg/parser"
+	"github.com/fredbi/benchviz/internal/chart"
+	"github.com/fredbi/benchviz/internal/config"
+	"github.com/fredbi/benchviz/internal/organizer"
+	"github.com/fredbi/benchviz/internal/parser"
 
 	"github.com/go-openapi/testify/v2/require"
 )

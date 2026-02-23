@@ -3,8 +3,8 @@ package chart
 import (
 	"log/slog"
 
-	"github.com/fredbi/benchviz/internal/pkg/config"
-	"github.com/fredbi/benchviz/internal/pkg/model"
+	"github.com/fredbi/benchviz/internal/config"
+	"github.com/fredbi/benchviz/internal/model"
 )
 
 // Builder constructs charts from scenarized benchmark data.

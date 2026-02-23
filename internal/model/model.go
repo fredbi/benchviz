@@ -3,7 +3,7 @@ package model
 import (
 	"strings"
 
-	"github.com/fredbi/benchviz/internal/pkg/config"
+	"github.com/fredbi/benchviz/internal/config"
 )
 
 // Scenario defines a complete configuration for benchmark visualization on a single page.

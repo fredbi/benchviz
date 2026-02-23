@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fredbi/benchviz/internal/pkg/config"
-	"github.com/fredbi/benchviz/internal/pkg/organizer"
-	"github.com/fredbi/benchviz/internal/pkg/parser"
+	"github.com/fredbi/benchviz/internal/config"
+	"github.com/fredbi/benchviz/internal/organizer"
+	"github.com/fredbi/benchviz/internal/parser"
 
 	"github.com/go-openapi/testify/v2/assert"
 	"github.com/go-openapi/testify/v2/require"
