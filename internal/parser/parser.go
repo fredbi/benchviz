@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -223,20 +224,19 @@ func (p *BenchmarkParser) Sets() []Set {
 }
 
 func (p *BenchmarkParser) parseText(r io.Reader) (Set, error) {
-	// Read all input to extract environment info
-	content, err := io.ReadAll(r) // TODO: replace with io.TeeReader
-	if err != nil {
-		return Set{}, fmt.Errorf("reading input: %w", err)
-	}
+	// Use TeeReader to capture input while parsing: the benchmark parser
+	// consumes the reader, and the buffer captures a copy for environment extraction.
+	var buf bytes.Buffer
+	tee := io.TeeReader(r, &buf)
 
-	// Extract environment info
-	environment := extractEnvironment(string(content))
-
-	// Parse benchmarks
-	set, err := parse.ParseSet(strings.NewReader(string(content)))
+	// Parse benchmarks from the tee reader
+	set, err := parse.ParseSet(tee)
 	if err != nil {
 		return Set{}, err
 	}
+
+	// Extract environment info from the captured copy
+	environment := extractEnvironment(buf.String())
 
 	s := Set{
 		Set:         set,
@@ -295,13 +295,15 @@ func (p *BenchmarkParser) parseJSON(r io.Reader) (Set, error) {
 }
 
 // extractEnvironment extracts environment information from benchmark output.
-// It looks for goos, goarch, and cpu lines and combines them.
+// It looks for goversion, goos, goarch, and cpu lines and combines them.
 func extractEnvironment(text string) string {
 	var parts []string
 	for line := range strings.SplitSeq(text, "\n") {
 		line = strings.TrimSpace(line)
 
 		switch {
+		case strings.HasPrefix(line, "goversion: "):
+			parts = append(parts, strings.TrimPrefix(line, "goversion: "))
 		case strings.HasPrefix(line, "goos: "):
 			parts = append(parts, strings.TrimPrefix(line, "goos: "))
 		case strings.HasPrefix(line, "goarch: "):

@@ -70,9 +70,8 @@ func (c *Chart) Build() *charts.Bar {
 	legendOpts := echartsopts.Legend{
 		Show: echartsopts.Bool(c.ShowLegend),
 	}
-	if c.ShowLegend { // TODO: configurable
-		legendOpts.X = "right"
-		legendOpts.Y = "bottom"
+	if c.ShowLegend {
+		legendOpts.X, legendOpts.Y = legendXY(c.LegendPosition)
 	}
 
 	xAxisOpts, yAxisOpts := c.setAxes()
@@ -124,6 +123,20 @@ func (c *Chart) Build() *charts.Bar {
 	}
 
 	return bar
+}
+
+// legendXY maps a legend position string to echarts X and Y alignment values.
+func legendXY(pos string) (string, string) {
+	switch pos {
+	case "top":
+		return "center", "top"
+	case "left":
+		return "left", "center"
+	case "right":
+		return "right", "center"
+	default: // "bottom" or any unknown value
+		return "center", "bottom"
+	}
 }
 
 func (c *Chart) setAxes() (echartsopts.XAxis, echartsopts.YAxis) {

@@ -54,7 +54,6 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 		return nil
 	}
 
-	// layoutConfig := b.cfg.Render // TODO
 	showLegend := b.cfg.Render.Legend != config.LegendPositionNone
 	title := category.TitleWithPlaceHolders(metric)
 	yAxis := metric.Title + " (" + metric.Axis + ")"
@@ -64,7 +63,8 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 		WithXAxisLabels(category.Labels()),
 		WithYAxisLabel(yAxis),
 		WithSubtitle(category.Environment),
-		WithLegend(showLegend), // TODO: configurable legend position
+		WithLegend(showLegend),
+		WithLegendPosition(string(b.cfg.Render.Legend)),
 		WithHorizontal(b.cfg.Render.Orientation == config.OrientationHorizontal),
 	)
 

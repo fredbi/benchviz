@@ -1,23 +1,33 @@
 package chart
 
-// Theme constants from go-echarts.
-//
-// TODO: add more supported themes.
+// Theme constants from go-echarts built-in themes.
 const (
-	ThemeRoma = "roma"
+	ThemeRoma            = "roma"
+	ThemeVintage         = "vintage"
+	ThemeDark            = "dark"
+	ThemeWesteros        = "westeros"
+	ThemeEssos           = "essos"
+	ThemeWonderland      = "wonderland"
+	ThemeWalden          = "walden"
+	ThemeChalk           = "chalk"
+	ThemeInfographic     = "infographic"
+	ThemeMacarons        = "macarons"
+	ThemePurplePassions  = "purple-passions"
+	ThemeShine           = "shine"
 )
 
 // Option configures a [Chart].
 type Option func(*options)
 
 type options struct {
-	Title       string
-	Subtitle    string
-	XAxisLabels []string
-	YAxisLabel  string
-	Theme       string
-	ShowLegend  bool
-	Horizontal  bool
+	Title          string
+	Subtitle       string
+	XAxisLabels    []string
+	YAxisLabel     string
+	Theme          string
+	ShowLegend     bool
+	LegendPosition string
+	Horizontal     bool
 }
 
 // WithTitle sets the chart title.
@@ -59,6 +69,13 @@ func WithYAxisLabel(ylabel string) Option {
 func WithXAxisLabels(xlabels []string) Option {
 	return func(c *options) {
 		c.XAxisLabels = xlabels
+	}
+}
+
+// WithLegendPosition sets the legend position (e.g. "bottom", "top", "left", "right").
+func WithLegendPosition(pos string) Option {
+	return func(c *options) {
+		c.LegendPosition = pos
 	}
 }
 
