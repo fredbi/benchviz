@@ -81,11 +81,11 @@ This tool leverages two fantastic libraries.
 	github.com/chromedp/chromedp 
   ```
 
+## [Configuration](./docs/configuration.md)
+
 ## TODOs & ROADMAP
 
-* environment capture doesn't get go version
 * modify shared workflows to support goreleaser
-* document config
 * example with URI (story across commits)
 * better layout for swag example
 
