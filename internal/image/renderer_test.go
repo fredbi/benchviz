@@ -115,14 +115,13 @@ func testContext(t *testing.T) (context.Context, func()) {
 		return ctx, func() {}
 	}
 
-	// Prepare browser options for CI/CD environments
-	opts := []chromedp.ExecAllocatorOption{
-		chromedp.NoFirstRun,
-		chromedp.NoDefaultBrowserCheck,
+	// In CI/CD environments, extend the default exec allocator options with
+	// flags required for headless operation: no-sandbox (required for GitHub Actions
+	// and similar environments), and disable-gpu (avoids GPU-related crashes).
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.DisableGPU,
-		chromedp.NoSandbox, // Required for GitHub Actions and similar environments
-		chromedp.Headless,
-	}
+		chromedp.NoSandbox,
+	)
 
 	return chromedp.NewExecAllocator(ctx, opts...)
 }
