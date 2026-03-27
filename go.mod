@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/chromedp/chromedp v0.15.1
 	github.com/go-echarts/go-echarts/v2 v2.7.1
-	github.com/go-openapi/testify/v2 v2.4.0
+	github.com/go-openapi/testify/v2 v2.4.2
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/text v0.35.0
