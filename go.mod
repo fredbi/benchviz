@@ -8,8 +8,8 @@ require (
 	github.com/go-openapi/testify/v2 v2.4.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	go.yaml.in/yaml/v3 v3.0.4
-	golang.org/x/text v0.34.0
-	golang.org/x/tools v0.42.0
+	golang.org/x/text v0.35.0
+	golang.org/x/tools v0.43.0
 )
 
 require (
