@@ -69,6 +69,10 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 		WithHorizontal(b.cfg.Render.Orientation == config.OrientationHorizontal),
 	}
 
+	if b.cfg.Render.Theme != "" {
+		opts = append(opts, WithTheme(b.cfg.Render.Theme))
+	}
+
 	if w, h := b.chartSize(); w != "" {
 		opts = append(opts, WithSize(w, h))
 	}
