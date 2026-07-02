@@ -56,7 +56,7 @@ func (c Category) Labels() (xlabels []string) {
 				if seen {
 					continue
 				}
-				xlabels = append(xlabels, point.Function+" - "+point.Context)
+				xlabels = append(xlabels, point.Label)
 				labelsIdx[SeriesKey{Function: point.Function, Context: point.Context}] = struct{}{}
 			}
 		}
@@ -120,5 +120,6 @@ type MetricPoint struct {
 	SeriesKey
 
 	Name  string
+	Label string // x-axis label: context title (optionally prefixed by function title)
 	Value float64
 }

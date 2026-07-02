@@ -141,6 +141,43 @@ func (v *Organizer) resolveMetric(search config.MetricName, parsed ParsedBenchma
 	}
 */
 
+// resolveLabels fills display strings from config Titles (overriding the ids):
+// the series legend is the version Title (else its id), and each point's x-axis
+// Label is the context Title (else its id), prefixed by the function Title only
+// when that Title is non-empty — so an empty function Title yields a context-only
+// label (no redundant "<function> - " prefix).
+func (v *Organizer) resolveLabels(series []model.MetricSeries, version config.Version, showFunction bool) {
+	legend := version.Title
+	if legend == "" {
+		legend = version.ID
+	}
+
+	for si := range series {
+		series[si].Title = legend
+
+		for pi := range series[si].Points {
+			p := &series[si].Points[pi]
+
+			ctxLabel := p.Context
+			if ctx, ok := v.cfg.GetContext(p.Context); ok && ctx.Title != "" {
+				ctxLabel = ctx.Title
+			}
+
+			// The function is redundant in the label when a chart plots a single
+			// function (the common case): show it only to disambiguate >1 function.
+			if showFunction {
+				fnLabel := p.Function
+				if fn, ok := v.cfg.GetFunction(p.Function); ok && fn.Title != "" {
+					fnLabel = fn.Title
+				}
+				p.Label = fnLabel + " - " + ctxLabel
+			} else {
+				p.Label = ctxLabel
+			}
+		}
+	}
+}
+
 func (v *Organizer) populateCategories(set *BenchmarkSet) (*model.Scenario, error) {
 	scenario := &model.Scenario{
 		Name:       v.cfg.Name,
@@ -164,6 +201,7 @@ func (v *Organizer) populateCategories(set *BenchmarkSet) (*model.Scenario, erro
 				data.Metric = metric
 				data.Version = version
 				data.Series = set.SeriesFor(metric.ID, version.ID, categoryConfig)
+				v.resolveLabels(data.Series, version, len(categoryConfig.Includes.Functions) > 1)
 				category.Data = append(category.Data, data)
 				category.Environment = stringDefault(environment, set.Environment())
 			}

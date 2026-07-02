@@ -37,7 +37,7 @@ func (c *Chart) AddSeries(series model.MetricSeries) {
 	data := make([]echartsopts.BarData, 0, len(series.Points))
 	for _, point := range series.Points {
 		data = append(data, echartsopts.BarData{
-			Name:  point.Function + " - " + point.Context,
+			Name:  point.Label,
 			Value: point.Value,
 			/*
 				Tooltip: &echartsopts.Tooltip{
