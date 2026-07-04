@@ -36,7 +36,7 @@ jobs:
   bump-release:
     permissions:
       contents: write
-    uses: go-openapi/ci-workflows/.github/workflows/bump-release.yml@435746a4b72b06b6b6989c309fd2ad8150dbae5a # v0.2.11
+    uses: go-openapi/ci-workflows/.github/workflows/bump-release.yml@af4c93f45481ea7d24ac2a9858272cc03daf424e # v0.4.0
     with:
       bump-patch: ${{ inputs.bump-patch }}
       bump-minor: ${{ inputs.bump-minor }}
