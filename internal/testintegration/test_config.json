@@ -15,6 +15,7 @@
     "Scale": "auto",
     "DualScale": false,
     "Orientation": "horizontal",
+    "LabelFontSize": 12,
     "Screenshot": {
       "Height": 0,
       "Width": 0,

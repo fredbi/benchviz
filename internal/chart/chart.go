@@ -143,6 +143,26 @@ func legendXY(pos string) (string, string) {
 	}
 }
 
+// workloadAxisLabel builds the tick-label options for the workload (category) axis.
+//
+// The workload names are rotated to fit and, when configured, rendered at a smaller
+// font size so long names don't overflow (notably on horizontal bar charts).
+func (c *Chart) workloadAxisLabel() *echartsopts.AxisLabel {
+	label := &echartsopts.AxisLabel{
+		Rotate:       xAxisLabelAngle,
+		Interval:     "0",
+		ShowMinLabel: echartsopts.Bool(true),
+		ShowMaxLabel: echartsopts.Bool(true),
+		HideOverlap:  echartsopts.Bool(false),
+	}
+
+	if c.LabelFontSize > 0 {
+		label.FontSize = c.LabelFontSize
+	}
+
+	return label
+}
+
 func (c *Chart) setAxes() (echartsopts.XAxis, echartsopts.YAxis) {
 	const (
 		workload     = "Workload"
@@ -162,13 +182,7 @@ func (c *Chart) setAxes() (echartsopts.XAxis, echartsopts.YAxis) {
 			AxisTick: &echartsopts.AxisTick{
 				AlignWithLabel: echartsopts.Bool(true),
 			},
-			AxisLabel: &echartsopts.AxisLabel{
-				Rotate:       xAxisLabelAngle,
-				Interval:     "0",
-				ShowMinLabel: echartsopts.Bool(true),
-				ShowMaxLabel: echartsopts.Bool(true),
-				HideOverlap:  echartsopts.Bool(false),
-			},
+			AxisLabel: c.workloadAxisLabel(),
 		}
 
 		// Y-axis options
@@ -190,13 +204,7 @@ func (c *Chart) setAxes() (echartsopts.XAxis, echartsopts.YAxis) {
 		Type:         xType,
 		Position:     axisPosition,
 		NameLocation: "end",
-		AxisLabel: &echartsopts.AxisLabel{
-			Rotate:       xAxisLabelAngle,
-			Interval:     "0",
-			ShowMinLabel: echartsopts.Bool(true),
-			ShowMaxLabel: echartsopts.Bool(true),
-			HideOverlap:  echartsopts.Bool(false),
-		},
+		AxisLabel:    c.workloadAxisLabel(),
 	}
 
 	xAxisOpts := echartsopts.XAxis{

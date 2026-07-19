@@ -33,6 +33,7 @@ render:
   legend: bottom
   scale: auto
   orientation: horizontal
+  labelFontSize: 12
   screenshot:
     width: 1920
     height: 1080
@@ -48,6 +49,7 @@ render:
 | `scale`       | string | `auto`       | Y-axis scaling: `auto` or `log`.                                    |
 | `dualscale`   | bool   | `false`      | Enable dual Y-axis for categories with two metrics.                 |
 | `orientation` | string | `vertical`   | Bar direction: `vertical` or `horizontal`.                          |
+| `labelFontSize` | int  | `12`       | Font size (px) of the workload axis tick labels. Lower it when long workload names overflow (notably on horizontal bar charts). `0` uses the ECharts default. |
 
 ### Layout
 
@@ -58,8 +60,10 @@ The `layout` sub-section controls how multiple charts are arranged on the page.
 | `horizontal` | int  | `0`     | Number of charts per row. `0` or `1` uses the default fixed width.|
 | `vertical`   | int  | `0`     | Number of chart rows. `0` uses default height.                    |
 
-When `horizontal` is set to `2`, each chart takes 50% of the page width.
-When `horizontal` is `3`, each chart takes 33%, and so on.
+Charts are sized in pixels so the flex-wrap page lays them out reliably.
+`horizontal: 2` yields the default 900×500 canvas (two charts per row on a
+wide viewport); `horizontal: 3` makes each chart proportionally narrower, and
+so on. `vertical` divides the nominal page height the same way.
 
 ### Screenshot
 

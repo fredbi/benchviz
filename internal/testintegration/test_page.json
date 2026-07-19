@@ -12,6 +12,7 @@
       "ShowLegend": true,
       "LegendPosition": "bottom",
       "Horizontal": true,
+      "LabelFontSize": 12,
       "Series": [
         {
           "Name": "reflect",
@@ -34,6 +35,7 @@
       "ShowLegend": true,
       "LegendPosition": "bottom",
       "Horizontal": true,
+      "LabelFontSize": 12,
       "Series": [
         {
           "Name": "reflect",
@@ -56,6 +58,7 @@
       "ShowLegend": true,
       "LegendPosition": "bottom",
       "Horizontal": true,
+      "LabelFontSize": 12,
       "Series": [
         {
           "Name": "reflect",
@@ -78,6 +81,7 @@
       "ShowLegend": true,
       "LegendPosition": "bottom",
       "Horizontal": true,
+      "LabelFontSize": 12,
       "Series": [
         {
           "Name": "reflect",

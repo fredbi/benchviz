@@ -30,6 +30,7 @@ type options struct {
 	ShowLegend     bool
 	LegendPosition string
 	Horizontal     bool
+	LabelFontSize  int
 }
 
 // WithTitle sets the chart title.
@@ -93,6 +94,14 @@ func WithSize(width, height string) Option {
 func WithHorizontal(enabled bool) Option {
 	return func(c *options) {
 		c.Horizontal = enabled
+	}
+}
+
+// WithLabelFontSize sets the font size (px) of the workload axis tick labels.
+// A zero value leaves the ECharts default in place.
+func WithLabelFontSize(size int) Option {
+	return func(c *options) {
+		c.LabelFontSize = size
 	}
 }
 

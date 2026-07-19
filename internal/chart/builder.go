@@ -85,6 +85,7 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 		WithLegend(showLegend),
 		WithLegendPosition(string(b.cfg.Render.Legend)),
 		WithHorizontal(b.cfg.Render.Orientation == config.OrientationHorizontal),
+		WithLabelFontSize(b.cfg.Render.LabelFontSize),
 	}
 
 	if b.cfg.Render.Theme != "" {

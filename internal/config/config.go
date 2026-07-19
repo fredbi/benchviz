@@ -168,7 +168,11 @@ type Rendering struct {
 	Scale       Scale
 	DualScale   bool
 	Orientation Orientation
-	Screenshot  Screenshot
+	// LabelFontSize sets the font size (in px) of the workload axis tick labels
+	// (the per-bar category names). Zero uses the ECharts default. Reduce it when
+	// long workload names overflow, typically on horizontal bar charts.
+	LabelFontSize int
+	Screenshot    Screenshot
 }
 
 // Orientation controls the chart bar direction.

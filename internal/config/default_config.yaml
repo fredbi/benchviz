@@ -1,13 +1,14 @@
 # configuration for benchviz
 environment: ''
 render:
-  title: 'Benchark'
+  title: 'Benchmark'
   theme: roma
   chart: barchart
   layout:
     horizontal: 2
   legend: bottom
   scale: auto
+  labelFontSize: 12
 
 outputs:
   htmlFile: ''
