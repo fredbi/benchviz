@@ -26,9 +26,13 @@ func New(cfg *config.Config, scenario *model.Scenario) *Builder {
 	}
 }
 
+// defaultPageTitle is the HTML <title> used when neither render.title nor the
+// scenario name is configured (avoids go-echarts' "Awesome go-echarts" default).
+const defaultPageTitle = "Benchmark results"
+
 // BuildPage creates a page with all charts for all metrics and categories.
 func (b *Builder) BuildPage() *Page {
-	page := NewPage(b.scenario.Name)
+	page := NewPage(b.pageTitle())
 
 	for _, category := range b.scenario.Categories {
 		for _, metric := range category.Metrics() {
@@ -47,6 +51,20 @@ func (b *Builder) BuildPage() *Page {
 	b.l.Info("added charts", slog.Int("charts", len(page.Charts)))
 
 	return page
+}
+
+// pageTitle resolves the HTML page title: the configured render.title takes
+// precedence, then the scenario name, then a benchviz default.
+func (b *Builder) pageTitle() string {
+	if b.cfg.Render.Title != "" {
+		return b.cfg.Render.Title
+	}
+
+	if b.scenario.Name != "" {
+		return b.scenario.Name
+	}
+
+	return defaultPageTitle
 }
 
 // buildChart creates a single chart for one metric (possibly two) and one category.
@@ -98,24 +116,37 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 	return chart
 }
 
+// Nominal page dimensions used to derive per-chart canvas sizes from the layout config.
+//
+// They are picked so that the common horizontal:2 case yields the go-echarts default
+// canvas (900px × 500px), preserving the historical, known-good layout.
+const (
+	nominalPageWidth  = 1800
+	nominalPageHeight = 1000
+)
+
 // chartSize computes the chart canvas dimensions from the layout config.
 //
-// When Layout.Horizontal > 1, the width is divided among that many charts per row.
-// A small gap is subtracted so charts don't touch.
+// The dimensions must be concrete pixel values: the page uses a flex-wrap layout where
+// each chart renders into an .item nested inside a content-sized .container. A percentage
+// width would resolve against that indefinite container width and collapse to nothing,
+// cramming every chart onto a single row. Pixel widths always resolve, and flex-wrap then
+// packs as many charts per row as the viewport allows.
+//
+// When Layout.Horizontal > 1, the nominal page width is divided among that many charts, so
+// a wider column count produces proportionally narrower charts that fit more per row.
+// Layout.Vertical divides the nominal page height likewise.
 func (b *Builder) chartSize() (width, height string) {
 	cols := b.cfg.Render.Layout.Horizontal
 	if cols <= 1 {
 		return "", "" // use go-echarts defaults (900px × 500px)
 	}
 
-	pct := 100 / cols
-	width = fmt.Sprintf("%d%%", pct)
+	width = fmt.Sprintf("%dpx", nominalPageWidth/cols)
 
 	rows := b.cfg.Render.Layout.Vertical
 	if rows > 1 {
-		// Divide viewport height among rows, capped at a reasonable minimum.
-		vpct := 100 / rows
-		height = fmt.Sprintf("%dvh", vpct)
+		height = fmt.Sprintf("%dpx", nominalPageHeight/rows)
 	}
 
 	return width, height

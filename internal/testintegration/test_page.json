@@ -1,5 +1,5 @@
 {
-  "Title": "testify generics benchmarks",
+  "Title": "Benchmark",
   "Charts": [
     {
       "Title": "Benchmark Timings (comparisons)",
@@ -7,7 +7,7 @@
       "XAxisLabels": null,
       "YAxisLabel": "Benchmark Timings (ns/op)",
       "Theme": "roma",
-      "Width": "50%",
+      "Width": "900px",
       "Height": "",
       "ShowLegend": true,
       "LegendPosition": "bottom",
@@ -29,7 +29,7 @@
       "XAxisLabels": null,
       "YAxisLabel": "Benchmark Allocations (allocs/op)",
       "Theme": "roma",
-      "Width": "50%",
+      "Width": "900px",
       "Height": "",
       "ShowLegend": true,
       "LegendPosition": "bottom",
@@ -51,7 +51,7 @@
       "XAxisLabels": null,
       "YAxisLabel": "Benchmark Timings (ns/op)",
       "Theme": "roma",
-      "Width": "50%",
+      "Width": "900px",
       "Height": "",
       "ShowLegend": true,
       "LegendPosition": "bottom",
@@ -73,7 +73,7 @@
       "XAxisLabels": null,
       "YAxisLabel": "Benchmark Allocations (allocs/op)",
       "Theme": "roma",
-      "Width": "50%",
+      "Width": "900px",
       "Height": "",
       "ShowLegend": true,
       "LegendPosition": "bottom",

@@ -3,7 +3,7 @@ name: testify generics benchmarks
 environment: ''
 isJSON: true
 render:
-  title: 'Benchark'
+  title: 'Benchmark'
   theme: roma
   chart: barchart
   layout:
