@@ -16,4 +16,4 @@ jobs:
     uses: go-openapi/ci-workflows/.github/workflows/go-test.yml@9accbba5cd7c600c1db8051493b1d3c5698187ff # v0.4.1
     secrets: inherit
     with:
-      matrix: '{"os":["ubuntu-latest","macos-latest","windows-latest"],"go": ["stable"]}'
+      test-matrix: '{"os":["ubuntu-latest","macos-latest","windows-latest"],"go": ["stable"]}'
