@@ -353,6 +353,10 @@ const (
 	AggregationFunctionMin     AggregationFunction = "min"
 )
 
+func (f AggregationFunction) String() string {
+	return string(f)
+}
+
 // Category groups functions, contexts, versions and metrics into a single chart.
 //
 // (Function,Context,Version) corresponds to a single data point for a Metric.
