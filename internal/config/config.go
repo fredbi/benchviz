@@ -29,7 +29,7 @@ type Config struct {
 	Render      Rendering
 	Outputs     Output `mapstructure:"-"`
 	Metrics     []Metric
-	Functions   []Function
+	Functions   []Function // functions subject to meaasurements
 	Contexts    []Context
 	Versions    []Version
 	Categories  []Category
@@ -38,7 +38,7 @@ type Config struct {
 	functionIndex map[string]Function
 	contextIndex  map[string]Context
 	versionIndex  map[string]Version
-	metricIndex map[MetricName]Metric
+	metricIndex   map[MetricName]Metric
 }
 
 // GetFunction retrieves a function definition by its ID.
@@ -314,21 +314,62 @@ type Function struct {
 	Object `mapstructure:",deep,squash"`
 }
 
-// Context identifies a benchmark context (e.g. input size, data type) by regexp matching.
+// Context identifies a benchmark context (e.g. input size, data type, corpus) by regexp matching.
+//
+// Multiple Contexts for the same Function will build as many series on the chart.
 type Context struct {
 	Object `mapstructure:",deep,squash"`
 }
 
 // Version identifies a benchmark implementation variant (e.g. "reflect", "generics") by regexp matching.
+//
+// Multiple Versions will build as many X-axis points for a series (Y-axis for horizontal chart)
+//
+// A single Version with DerivedVersion is an invalid setting.
 type Version struct {
 	Object `mapstructure:",deep,squash"`
+
+	DerivedVersion Derived
 }
 
+// Derived optionally constructs a derived measurement from the points in Functions over all versions.
+// When set to another value than [AggregationFunctionNone] the [AggregationFunction] is applied to construct
+// an additional version that aggregates all contexts. The outcome is twice as many versions as the original,
+// each version being supplemented by a derived one, with one single (aggregate) context.
+//
+// Derived series are always evaluated last, even if they appear early in the list.
+type Derived struct {
+	Formula AggregationFunction
+}
+
+// AggregationFunction specifies how measurements are aggregated to construct a derived series.
+type AggregationFunction string
+
+const (
+	AggregationFunctionNone    AggregationFunction = ""
+	AggregationFunctionMean    AggregationFunction = "mean"
+	AggregationFunctionGeoMean AggregationFunction = "geomean"
+	AggregationFunctionMax     AggregationFunction = "max"
+	AggregationFunctionMin     AggregationFunction = "min"
+)
+
 // Category groups functions, contexts, versions and metrics into a single chart.
+//
+// (Function,Context,Version) corresponds to a single data point for a Metric.
+//
+// A DerivedCategory may be specified: this one aggregates over Contexts and Versions:
+// this creates a new Category that for each Function, produces an aggregate over Contexts and Versions.
+//
+// A Category that specifies DerivedCategory ignores the Includes clause (implied from other categories).
+// A single Category with DerivedCategory is an invalid setting.
+//
+// TODO: optional markpoints (min,max), optional styled single bar
+// TODO: add "baseline" property so all other series are relative to the baseline.
 type Category struct {
-	ID       string
-	Title    string
-	Includes Includes
+	ID              string
+	Title           string
+	Includes        Includes
+	DerivedCategory Derived
 }
 
 // Includes lists the IDs of functions, versions, contexts and metrics included in a [Category].
