@@ -146,7 +146,9 @@ func (c Config) FindContextFromFile(file string) (id string, ok bool) {
 
 // EncodeYAML serializes a [Config] to YAML into the provided writer.
 //
-// Runtime-only fields (IsJSON, IsStrict, Outputs) are excluded from the output.
+// Runtime-only fields (IsJSON, IsStrict, Outputs) are excluded from the output: input
+// format, strictness and output paths come from the command line, and a configuration
+// file that pretends to set them is misleading.
 func (c *Config) EncodeYAML(w io.Writer) error {
 	var raw map[string]any
 
@@ -163,7 +165,41 @@ func (c *Config) EncodeYAML(w io.Writer) error {
 		return fmt.Errorf("decoding config to map: %w", err)
 	}
 
+	dropEmptyDerived(raw, "Contexts", "DerivedContext")
+	dropEmptyDerived(raw, "Categories", "DerivedCategory")
+
 	return yaml.NewEncoder(w).Encode(raw)
+}
+
+// dropEmptyDerived removes the derived blocks that carry no aggregation formula.
+//
+// mapstructure has no way of omitting an empty struct, so every entry would otherwise
+// advertise a "Formula:" of its own — a generated configuration should not suggest a
+// feature it does not use.
+func dropEmptyDerived(raw map[string]any, listKey, derivedKey string) {
+	entries, ok := raw[listKey].([]map[string]any)
+	if !ok {
+		return
+	}
+
+	for _, fields := range entries {
+		derived, ok := fields[derivedKey].(map[string]any)
+		if !ok {
+			continue
+		}
+
+		// the decoder keeps the value typed, but tolerate a plain string as well
+		switch formula := derived["Formula"].(type) {
+		case AggregationFunction:
+			if formula == AggregationFunctionNone {
+				delete(fields, derivedKey)
+			}
+		case string:
+			if formula == "" {
+				delete(fields, derivedKey)
+			}
+		}
+	}
 }
 
 // Rendering holds chart rendering settings (theme, layout, legend, scale).

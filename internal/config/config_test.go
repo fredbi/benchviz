@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"path/filepath"
@@ -1286,12 +1287,13 @@ func TestAggregationFunction(t *testing.T) {
 func TestEncodeYAMLDerived(t *testing.T) {
 	cfg := mustLoadTestConfig(t, derivedContextConfig(""))
 
+	var buf bytes.Buffer
+	require.NoError(t, cfg.EncodeYAML(&buf))
+	encoded := buf.String()
+
 	dir := t.TempDir()
 	file := filepath.Join(dir, "roundtrip.yaml")
-	f, err := os.Create(file)
-	require.NoError(t, err)
-	require.NoError(t, cfg.EncodeYAML(f))
-	require.NoError(t, f.Close())
+	require.NoError(t, os.WriteFile(file, buf.Bytes(), 0o600))
 
 	loaded, err := Load(file)
 	require.NoError(t, err)
@@ -1300,6 +1302,32 @@ func TestEncodeYAMLDerived(t *testing.T) {
 	require.True(t, ok)
 	assert.True(t, context.IsDerived())
 	assert.Equal(t, AggregationFunctionGeoMean, context.DerivedContext.Formula)
+
+	// only the entry that is actually derived carries a formula: the others must not
+	// advertise a feature they do not use
+	assert.Equal(t, 1, strings.Count(encoded, "Formula:"), "unexpected derived blocks in:\n%s", encoded)
+}
+
+// TestEncodeYAMLOmitsRuntimeAndEmptyDerived verifies that a generated configuration holds
+// only what a configuration file may actually set.
+func TestEncodeYAMLOmitsRuntimeAndEmptyDerived(t *testing.T) {
+	cfg := Generate(GenerateInput{
+		Functions: []string{"BenchmarkGreater/generic/int-16"},
+		Metrics:   []MetricName{MetricNsPerOp},
+	})
+
+	var buf bytes.Buffer
+	require.NoError(t, cfg.EncodeYAML(&buf))
+	encoded := buf.String()
+
+	for _, runtimeOnly := range []string{"Outputs", "HTMLFile", "PngFile", "IsJSON", "IsStrict"} {
+		assert.NotContains(t, encoded, runtimeOnly,
+			"%s comes from the command line and has no place in a config file", runtimeOnly)
+	}
+
+	// no category or context is derived here: no empty aggregation block should show up
+	assert.NotContains(t, encoded, "Derived")
+	assert.NotContains(t, encoded, "Formula")
 }
 
 // derivedContextConfig builds a config with a "summary" derived context, plus the extra

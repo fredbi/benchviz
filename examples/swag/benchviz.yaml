@@ -10,10 +10,6 @@ render:
   legend: bottom
   scale: auto
 
-outputs:
-  htmlFile: ''
-  pngFile: ''
-
 metrics:
   - 
     id: nsPerOp

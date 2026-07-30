@@ -10,10 +10,6 @@ render:
   scale: auto
   labelFontSize: 12
 
-outputs:
-  htmlFile: ''
-  pngFile: ''
-
 metrics:
   - 
     id: nsPerOp

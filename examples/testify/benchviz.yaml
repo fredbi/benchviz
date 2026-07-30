@@ -15,10 +15,6 @@ render:
   scale: auto
   orientation: horizontal
 
-outputs:
-  htmlFile: ''
-  pngFile: ''
-
 metrics:
   - 
     id: nsPerOp
