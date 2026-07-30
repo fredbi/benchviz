@@ -144,6 +144,49 @@ contexts:
 
 Each context becomes one data point in a bar chart series.
 
+### Derived contexts
+
+A context may hold no measurement of its own and instead summarize the others.
+It renders as an extra bar at the end of the chart, aggregating — for each
+function and each version — the measurements of all the other contexts of the
+category.
+
+```yaml
+contexts:
+  - id: small
+    match: 'small'
+  - id: medium
+    match: 'medium'
+  - id: geomean
+    derivedContext:
+      formula: geomean
+```
+
+| Field                     | Type   | Description                                                        |
+|---------------------------|--------|--------------------------------------------------------------------|
+| `derivedContext.formula`  | string | Aggregation formula. See [Aggregation](#aggregation).              |
+
+Versions remain the series, so the summary bars stay comparable across versions
+and no extra colour is introduced in the legend:
+
+```text
+ticks : ReadJSON - small   ReadJSON - medium   ReadJSON - Geomean   WriteJSON - ...
+series: Standard library, EasyJSON              ← unchanged
+```
+
+Notes:
+
+* a derived context carries no `match` or `notmatch`: it would otherwise collect
+  actual measurements. This is rejected at load time.
+* its `title` defaults to the formula name (`Geomean`), so the tick reads
+  `ReadJSON - Geomean`.
+* it must be listed explicitly in a category's `includes.contexts`: the summary
+  bar is opt-in, per chart. It is never injected by the "if empty, all apply" rule.
+* its position in the `contexts:` list decides where the bar shows up, even
+  though its value is computed last.
+* a configuration whose contexts are all derived is rejected: there would be
+  nothing left to aggregate.
+
 ## Versions
 
 Versions identify *which implementation* is being compared (e.g. `reflect` vs `generics`).
@@ -194,8 +237,66 @@ The `includes` sub-fields:
 |-------------|----------|---------------------------------------------------------|
 | `functions` | []string | Function IDs to include. If empty, all functions apply. |
 | `versions`  | []string | Version IDs to include. If empty, all versions apply.   |
-| `contexts`  | []string | Context IDs to include. If empty, all contexts apply.   |
+| `contexts`  | []string | Context IDs to include. If empty, all *measured* contexts apply — derived ones are opt-in. |
 | `metrics`   | []string | Metric IDs to include. At least one is required.        |
+
+### Derived categories
+
+A category may summarize the others instead of plotting measurements of its own.
+It produces a "bottom line" chart holding, for each function, a single aggregated
+measurement over the contexts of its scope.
+
+```yaml
+categories:
+  - id: bottom-line
+    derivedCategory:
+      formula: geomean
+```
+
+| Field                     | Type   | Description                                           |
+|---------------------------|--------|-------------------------------------------------------|
+| `derivedCategory.formula` | string | Aggregation formula. See [Aggregation](#aggregation). |
+
+The chart shows one tick per function, with the versions still side by side as
+series. Its `title` defaults to `{metric} - Geomean`.
+
+Its scope defaults to the union of what the other (non derived) categories
+include — their functions, contexts, versions and metrics. An `includes` clause
+narrows that, **one dimension at a time**; whatever it leaves out stays implied:
+
+```yaml
+  - id: bottom-line
+    derivedCategory:
+      formula: geomean
+    includes:
+      contexts: [small, medium]   # keep the large workload out of the summary
+```
+
+Narrowing matters when the workloads are not really comparable. On the `swag`
+example, the implied scope folds the `large` context in and the bottom line reads
+20738 ns/op for `ReadJSON`; narrowed to `small, medium` it reads 6859.
+
+A derived context may not appear in that clause — an aggregate never aggregates
+another one — and a configuration whose categories are all derived is rejected.
+
+## Aggregation
+
+The formulas available to derived contexts and derived categories:
+
+| Formula   | Description                                                              |
+|-----------|--------------------------------------------------------------------------|
+| `mean`    | Arithmetic mean.                                                         |
+| `geomean` | Geometric mean. Computed in the log domain, so it holds over the wide value ranges of benchmark timings. |
+| `min`     | Smallest measurement.                                                    |
+| `max`     | Largest measurement.                                                     |
+
+Aggregation applies per metric, and only ever to actual measurements: an
+aggregate never feeds another aggregate.
+
+Missing and zero measurements are dropped from the input set. A zero is a
+legitimate value for `allocsPerOp`, but it carries no information in a summary
+and it would sink a geometric mean. When nothing is left to aggregate, the
+summary renders as a gap rather than as a misleading zero.
 
 ## Files
 

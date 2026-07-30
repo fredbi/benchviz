@@ -2,6 +2,7 @@ package config
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -29,7 +30,7 @@ type Config struct {
 	Render      Rendering
 	Outputs     Output `mapstructure:"-"`
 	Metrics     []Metric
-	Functions   []Function
+	Functions   []Function // functions subject to meaasurements
 	Contexts    []Context
 	Versions    []Version
 	Categories  []Category
@@ -38,7 +39,7 @@ type Config struct {
 	functionIndex map[string]Function
 	contextIndex  map[string]Context
 	versionIndex  map[string]Version
-	metricIndex map[MetricName]Metric
+	metricIndex   map[MetricName]Metric
 }
 
 // GetFunction retrieves a function definition by its ID.
@@ -109,8 +110,15 @@ func (c Config) FindVersionFromFile(file string) (id string, ok bool) {
 }
 
 // FindContext returns the ID of the first context whose regexp matches the given benchmark name.
+//
+// Derived contexts never match: they aggregate other contexts rather than collect
+// measurements of their own.
 func (c Config) FindContext(name string) (id string, ok bool) {
 	for _, def := range c.Contexts {
+		if def.IsDerived() {
+			continue
+		}
+
 		if id, ok := def.MatchString(name); ok {
 			return id, true
 		}
@@ -138,7 +146,9 @@ func (c Config) FindContextFromFile(file string) (id string, ok bool) {
 
 // EncodeYAML serializes a [Config] to YAML into the provided writer.
 //
-// Runtime-only fields (IsJSON, IsStrict, Outputs) are excluded from the output.
+// Runtime-only fields (IsJSON, IsStrict, Outputs) are excluded from the output: input
+// format, strictness and output paths come from the command line, and a configuration
+// file that pretends to set them is misleading.
 func (c *Config) EncodeYAML(w io.Writer) error {
 	var raw map[string]any
 
@@ -155,7 +165,41 @@ func (c *Config) EncodeYAML(w io.Writer) error {
 		return fmt.Errorf("decoding config to map: %w", err)
 	}
 
+	dropEmptyDerived(raw, "Contexts", "DerivedContext")
+	dropEmptyDerived(raw, "Categories", "DerivedCategory")
+
 	return yaml.NewEncoder(w).Encode(raw)
+}
+
+// dropEmptyDerived removes the derived blocks that carry no aggregation formula.
+//
+// mapstructure has no way of omitting an empty struct, so every entry would otherwise
+// advertise a "Formula:" of its own — a generated configuration should not suggest a
+// feature it does not use.
+func dropEmptyDerived(raw map[string]any, listKey, derivedKey string) {
+	entries, ok := raw[listKey].([]map[string]any)
+	if !ok {
+		return
+	}
+
+	for _, fields := range entries {
+		derived, ok := fields[derivedKey].(map[string]any)
+		if !ok {
+			continue
+		}
+
+		// the decoder keeps the value typed, but tolerate a plain string as well
+		switch formula := derived["Formula"].(type) {
+		case AggregationFunction:
+			if formula == AggregationFunctionNone {
+				delete(fields, derivedKey)
+			}
+		case string:
+			if formula == "" {
+				delete(fields, derivedKey)
+			}
+		}
+	}
 }
 
 // Rendering holds chart rendering settings (theme, layout, legend, scale).
@@ -314,21 +358,120 @@ type Function struct {
 	Object `mapstructure:",deep,squash"`
 }
 
-// Context identifies a benchmark context (e.g. input size, data type) by regexp matching.
+// Context identifies a benchmark context (e.g. input size, data type, corpus) by regexp matching.
+//
+// Multiple Contexts for the same Function will build as many X-axis points on the chart
+// (Y-axis for horizontal charts).
+//
+// A Context that specifies DerivedContext holds no measurement of its own: it aggregates,
+// for each (function, version), the measurements of all the other (non derived) contexts
+// of the category. It shows as an extra summary bar in every series, and therefore carries
+// no Match or NotMatch.
+//
+// A configuration whose contexts are all derived is invalid: there would be nothing to
+// aggregate.
 type Context struct {
 	Object `mapstructure:",deep,squash"`
+
+	DerivedContext Derived
+}
+
+// IsDerived reports whether the context aggregates other contexts instead of holding
+// measurements of its own.
+func (c Context) IsDerived() bool {
+	return c.DerivedContext.IsDerived()
 }
 
 // Version identifies a benchmark implementation variant (e.g. "reflect", "generics") by regexp matching.
+//
+// Multiple Versions will build as many bar series, side by side on each X-axis point.
 type Version struct {
 	Object `mapstructure:",deep,squash"`
 }
 
+// Derived turns a [Context] or a [Category] into an aggregate of actual measurements.
+//
+// When Formula is set to another value than [AggregationFunctionNone], that
+// [AggregationFunction] is applied over the measurements of the entries that are not
+// themselves derived — aggregation never applies to another derived series.
+//
+// Derived series are always evaluated last, even if they appear early in the list: their
+// position in the configuration only decides where they show up in the layout.
+type Derived struct {
+	Formula AggregationFunction
+}
+
+// IsDerived reports whether an aggregation function is set.
+func (d Derived) IsDerived() bool {
+	return d.Formula != AggregationFunctionNone
+}
+
+// AggregationFunction specifies how measurements are aggregated to construct a derived series.
+type AggregationFunction string
+
+const (
+	AggregationFunctionNone    AggregationFunction = ""
+	AggregationFunctionMean    AggregationFunction = "mean"
+	AggregationFunctionGeoMean AggregationFunction = "geomean"
+	AggregationFunctionMax     AggregationFunction = "max"
+	AggregationFunctionMin     AggregationFunction = "min"
+)
+
+func (f AggregationFunction) String() string {
+	return string(f)
+}
+
+// IsValid reports whether the aggregation function is one of the supported formulas.
+//
+// [AggregationFunctionNone] is not valid: it merely signals a non derived entry.
+func (f AggregationFunction) IsValid() bool {
+	switch f {
+	case AggregationFunctionMean, AggregationFunctionGeoMean, AggregationFunctionMax, AggregationFunctionMin:
+		return true
+	default:
+		return false
+	}
+}
+
+// AllAggregationFunctions returns all the supported aggregation formulas.
+func AllAggregationFunctions() []AggregationFunction {
+	return []AggregationFunction{
+		AggregationFunctionMean,
+		AggregationFunctionGeoMean,
+		AggregationFunctionMax,
+		AggregationFunctionMin,
+	}
+}
+
 // Category groups functions, contexts, versions and metrics into a single chart.
+//
+// (Function,Context,Version) corresponds to a single data point for a Metric.
+//
+// A DerivedCategory may be specified: this one aggregates over Contexts and Versions,
+// producing for each Function a single aggregated measurement — a simplified chart
+// conveying the bottom line of the other categories.
+//
+// A Category that specifies DerivedCategory may leave its Includes clause out: whatever
+// it does not state is implied from the other (non derived) categories. Stating a
+// dimension explicitly narrows the aggregate, which is how workloads that are not really
+// comparable are kept out of the same bottom line.
+//
+// A configuration whose categories are all derived is invalid: there would be nothing to
+// aggregate.
+//
+// TODO: optional markpoints (min,max), optional styled single bar
+// TODO: add "baseline" property so all other series are relative to the baseline.
 type Category struct {
-	ID       string
-	Title    string
-	Includes Includes
+	ID              string
+	Title           string
+	Includes        Includes
+	DerivedCategory Derived
+}
+
+// IsDerived reports whether the category aggregates the other categories instead of
+// plotting measurements of its own.
+func (c Category) IsDerived() bool {
+	return c.DerivedCategory.IsDerived()
 }
 
 // Includes lists the IDs of functions, versions, contexts and metrics included in a [Category].
@@ -430,6 +573,8 @@ func (c *Config) validateFunctions() error {
 }
 
 func (c *Config) validateContexts() error {
+	var derived int
+
 	for i, v := range c.Contexts {
 		if v.ID == "" {
 			return fmt.Errorf("invalid contexts: empty ID found: contexts[%d]", i)
@@ -437,10 +582,46 @@ func (c *Config) validateContexts() error {
 		if _, ok := c.contextIndex[v.ID]; ok {
 			return fmt.Errorf("invalid contexts: duplicate ID key found: %s", v.ID)
 		}
+
+		if v.IsDerived() {
+			derived++
+			location := fmt.Sprintf("contexts[%d] (%s)", i, v.ID)
+
+			if err := validateDerived(v.DerivedContext, location); err != nil {
+				return err
+			}
+
+			// A derived context holds no measurement of its own, so it may not carry a
+			// matching rule: would it match a benchmark, actual measurements would land
+			// in the aggregate.
+			if v.Match != "" || v.NotMatch != "" {
+				return fmt.Errorf("invalid derived %s: a derived context aggregates other contexts and may not define match or notMatch", location)
+			}
+
+			if v.Title == "" {
+				// the formula names the summary bar (e.g. "ReadJSON - Geomean")
+				v.Title = titleize(v.DerivedContext.Formula)
+			}
+		}
+
 		if v.Title == "" {
 			v.Title = titleize(v.ID)
 		}
 		c.contextIndex[v.ID] = v
+	}
+
+	if derived > 0 && derived == len(c.Contexts) {
+		return errors.New("invalid contexts: all contexts are derived: there is no measurement left to aggregate")
+	}
+
+	return nil
+}
+
+// validateDerived checks the aggregation settings shared by all derived entries.
+func validateDerived(derived Derived, location string) error {
+	if !derived.Formula.IsValid() {
+		return fmt.Errorf("invalid derived %s: unknown aggregation formula %q (should be one of %v)",
+			location, derived.Formula, AllAggregationFunctions())
 	}
 
 	return nil
@@ -485,13 +666,91 @@ func (c *Config) validateMetrics() error {
 }
 
 func (c *Config) validateCategories() (err error) {
+	var derived int
+
 	for i, v := range c.Categories {
-		v, err = c.validateCategory(v, i)
+		if v.IsDerived() {
+			derived++
+
+			v, err = c.validateDerivedCategory(v, i)
+		} else {
+			v, err = c.validateCategory(v, i)
+		}
 		if err != nil {
 			return err
 		}
 
 		c.Categories[i] = v
+	}
+
+	if derived > 0 && derived == len(c.Categories) {
+		return errors.New("invalid categories: all categories are derived: there is no measurement left to aggregate")
+	}
+
+	return nil
+}
+
+// validateDerivedCategory validates a category that aggregates the other ones.
+//
+// Each dimension of its Includes clause is optional: whatever it leaves out is implied
+// from the non derived categories. Narrowing it explicitly is how one keeps workloads
+// that are not really comparable out of the same aggregate.
+//
+// Unlike a regular category, nothing is injected here: the implied scope is only known
+// once every category has been validated, so it is resolved when the series are built.
+func (c *Config) validateDerivedCategory(v Category, i int) (vv Category, err error) {
+	if v.ID == "" {
+		return vv, fmt.Errorf("invalid categories: empty ID found: categories[%d]", i)
+	}
+
+	if err := validateDerived(v.DerivedCategory, fmt.Sprintf("categories[%d] (%s)", i, v.ID)); err != nil {
+		return vv, err
+	}
+
+	if v.Title == "" {
+		v.Title = "{metric} - " + titleize(v.DerivedCategory.Formula)
+	}
+
+	if err := c.validateIncludeRefs(v); err != nil {
+		return vv, err
+	}
+
+	// an aggregate never feeds another aggregate
+	for j, ref := range v.Includes.Contexts {
+		if context, ok := c.contextIndex[ref]; ok && context.IsDerived() {
+			return vv, fmt.Errorf("invalid derived category: categories.%s.includes.contexts[%d]=%s is itself derived: an aggregate may not aggregate another one", v.ID, j, ref)
+		}
+	}
+
+	return v, nil
+}
+
+// validateIncludeRefs checks that every ID referenced by a category is defined.
+func (c *Config) validateIncludeRefs(v Category) error {
+	includes := v.Includes
+
+	for j, ref := range includes.Functions {
+		if _, ok := c.functionIndex[ref]; !ok {
+			return fmt.Errorf("invalid category: function ID not found categories.%s.includes.functions[%d]=%s", v.ID, j, ref)
+		}
+	}
+
+	for j, ref := range includes.Contexts {
+		if _, ok := c.contextIndex[ref]; !ok {
+			return fmt.Errorf("invalid category: context ID not found categories.%s.includes.contexts[%d]=%s", v.ID, j, ref)
+		}
+	}
+
+	for j, ref := range includes.Versions {
+		if _, ok := c.versionIndex[ref]; !ok {
+			return fmt.Errorf("invalid category: version ID not found categories.%s.includes.versions[%d]=%s", v.ID, j, ref)
+		}
+	}
+
+	for j, ref := range includes.Metrics {
+		if _, ok := c.metricIndex[ref]; !ok {
+			return fmt.Errorf("invalid category: metric ID not found categories.%s.includes.metrics[%d]=%s", v.ID, j, ref)
+		}
 	}
 
 	return nil
@@ -520,15 +779,30 @@ func (c *Config) validateCategory(v Category, i int) (vv Category, err error) {
 		}
 	}
 
+	var derivedContexts int
 	for j, ref := range includes.Contexts {
-		_, ok := c.contextIndex[ref]
+		context, ok := c.contextIndex[ref]
 		if !ok {
 			return vv, fmt.Errorf("invalid category: context ID not found categories.%s.includes.contexts[%d]=%s", v.ID, j, ref)
 		}
+
+		if context.IsDerived() {
+			derivedContexts++
+		}
+	}
+
+	if derivedContexts > 0 && derivedContexts == len(includes.Contexts) {
+		return vv, fmt.Errorf("invalid category: all contexts of categories.%s.includes.contexts are derived: there is no measurement left to aggregate", v.ID)
 	}
 
 	if len(includes.Contexts) == 0 {
+		// Derived contexts are never injected implicitly: an extra summary bar is opt-in,
+		// per category.
 		for _, injected := range c.Contexts {
+			if injected.IsDerived() {
+				continue
+			}
+
 			v.Includes.Contexts = append(v.Includes.Contexts, injected.ID)
 		}
 	}

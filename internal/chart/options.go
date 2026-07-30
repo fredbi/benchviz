@@ -2,18 +2,18 @@ package chart
 
 // Theme constants from go-echarts built-in themes.
 const (
-	ThemeRoma            = "roma"
-	ThemeVintage         = "vintage"
-	ThemeDark            = "dark"
-	ThemeWesteros        = "westeros"
-	ThemeEssos           = "essos"
-	ThemeWonderland      = "wonderland"
-	ThemeWalden          = "walden"
-	ThemeChalk           = "chalk"
-	ThemeInfographic     = "infographic"
-	ThemeMacarons        = "macarons"
-	ThemePurplePassions  = "purple-passions"
-	ThemeShine           = "shine"
+	ThemeRoma           = "roma"
+	ThemeVintage        = "vintage"
+	ThemeDark           = "dark"
+	ThemeWesteros       = "westeros"
+	ThemeEssos          = "essos"
+	ThemeWonderland     = "wonderland"
+	ThemeWalden         = "walden"
+	ThemeChalk          = "chalk"
+	ThemeInfographic    = "infographic"
+	ThemeMacarons       = "macarons"
+	ThemePurplePassions = "purple-passions"
+	ThemeShine          = "shine"
 )
 
 // Option configures a [Chart].

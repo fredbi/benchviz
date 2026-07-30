@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/fredbi/benchviz/internal/config"
+	"github.com/fredbi/benchviz/internal/model"
 	"github.com/fredbi/benchviz/internal/organizer"
 	"github.com/fredbi/benchviz/internal/parser"
 
@@ -79,6 +80,28 @@ func TestSmokeRenderTextFormat(t *testing.T) {
 	require.NotZero(t, buf.Len())
 
 	t.Logf("text format: rendered %d bytes of HTML", buf.Len())
+}
+
+// TestAddSeriesEmitsEmptyValues verifies that a point without a measurement still
+// occupies its slot in the series data, so that the bars stay aligned with the axis.
+func TestAddSeriesEmitsEmptyValues(t *testing.T) {
+	c := NewChart(WithXAxisLabels([]string{"small", "medium", "large"}))
+
+	c.AddSeries(model.MetricSeries{
+		Title: "easyjson",
+		Points: []model.MetricPoint{
+			{Label: "small", Value: 12},
+			{Label: "medium", Missing: true},
+			{Label: "large", Value: 34},
+		},
+	})
+
+	require.Len(t, c.Series, 1)
+	data := c.Series[0].Data
+	require.Len(t, data, 3, "the missing point must still be emitted")
+	assert.InDelta(t, 12.0, data[0].Value, 1e-9)
+	assert.Equal(t, emptyValue, data[1].Value)
+	assert.InDelta(t, 34.0, data[2].Value, 1e-9)
 }
 
 func TestWithTitleAndSubtitle(t *testing.T) {

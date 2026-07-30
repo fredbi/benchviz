@@ -25,7 +25,15 @@ type Category struct {
 	ID          string
 	Title       string
 	Environment string
-	Data        []CategoryData
+
+	// XLabels is the ordered list of workload axis labels (one per (function, context) column).
+	//
+	// Every series in the category holds exactly one point per label, in that same order:
+	// the chart aligns series data to the axis by index, so a series may never skip a column.
+	// Columns without any measurement carry a point flagged [MetricPoint.Missing].
+	XLabels []string
+
+	Data []CategoryData
 }
 
 // Metrics returns the deduplicated list of metrics present in the category data.
@@ -43,26 +51,6 @@ func (c Category) Metrics() (metrics []config.Metric) {
 	}
 
 	return metrics
-}
-
-// Labels returns the deduplicated X-axis labels across all data series in the category.
-func (c Category) Labels() (xlabels []string) {
-	labelsIdx := make(map[SeriesKey]struct{})
-
-	for _, data := range c.Data {
-		for _, series := range data.Series {
-			for _, point := range series.Points {
-				_, seen := labelsIdx[SeriesKey{Function: point.Function, Context: point.Context}]
-				if seen {
-					continue
-				}
-				xlabels = append(xlabels, point.Label)
-				labelsIdx[SeriesKey{Function: point.Function, Context: point.Context}] = struct{}{}
-			}
-		}
-	}
-
-	return xlabels
 }
 
 // TitleWithPlaceHolders replaces the "{metric}" placeholder in the title of the chart.
@@ -116,10 +104,14 @@ func (s MetricSeries) Labels() []string {
 //
 // The label is composed like "{function} - {context} - {version}" and may be used by tooltips
 // when hovering over a data point.
+//
+// A point holding no measurement is flagged Missing: it still occupies its column so the
+// series stays aligned with the workload axis, but renders as a gap rather than as a zero.
 type MetricPoint struct {
 	SeriesKey
 
-	Name  string
-	Label string // x-axis label: context title (optionally prefixed by function title)
-	Value float64
+	Name    string
+	Label   string // x-axis label: context title (optionally prefixed by function title)
+	Value   float64
+	Missing bool // no measurement for this (function, context, version, metric)
 }

@@ -1,9 +1,11 @@
 package config
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -1101,4 +1103,283 @@ files:
       - id: generics
         Match: "generics"
 `
+}
+
+func TestDerivedContext(t *testing.T) {
+	t.Run("should load a derived context", func(t *testing.T) {
+		cfg := mustLoadTestConfig(t, derivedContextConfig(""))
+
+		context, ok := cfg.GetContext("summary")
+		require.True(t, ok)
+		assert.True(t, context.IsDerived())
+		assert.Equal(t, AggregationFunctionGeoMean, context.DerivedContext.Formula)
+
+		// a plain context is not derived
+		plain, ok := cfg.GetContext("small")
+		require.True(t, ok)
+		assert.False(t, plain.IsDerived())
+	})
+
+	t.Run("should default the title to the aggregation formula", func(t *testing.T) {
+		cfg := mustLoadTestConfig(t, derivedContextConfig(""))
+
+		context, ok := cfg.GetContext("summary")
+		require.True(t, ok)
+		assert.Equal(t, "Geomean", context.Title)
+	})
+
+	t.Run("should keep an explicit title", func(t *testing.T) {
+		cfg := mustLoadTestConfig(t, derivedContextConfig("    title: Overall\n"))
+
+		context, ok := cfg.GetContext("summary")
+		require.True(t, ok)
+		assert.Equal(t, "Overall", context.Title)
+	})
+
+	t.Run("should never match a benchmark", func(t *testing.T) {
+		cfg := mustLoadTestConfig(t, derivedContextConfig(""))
+
+		// "summary" would be a tempting match for a benchmark named after it
+		id, ok := cfg.FindContext("BenchmarkRead/summary")
+		assert.False(t, ok)
+		assert.Empty(t, id)
+	})
+
+	t.Run("should reject a matching rule", func(t *testing.T) {
+		_, err := loadFromString(t, derivedContextConfig("    match: summary\n"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "may not define match")
+
+		_, err = loadFromString(t, derivedContextConfig("    notMatch: summary\n"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "may not define match")
+	})
+
+	t.Run("should reject an unknown formula", func(t *testing.T) {
+		_, err := loadFromString(t, strings.Replace(derivedContextConfig(""), "formula: geomean", "formula: median", 1))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unknown aggregation formula")
+	})
+
+	t.Run("should reject a configuration with only derived contexts", func(t *testing.T) {
+		_, err := loadFromString(t, `
+metrics:
+  - id: nsPerOp
+functions:
+  - id: read
+    match: Read
+contexts:
+  - id: summary
+    derivedContext:
+      formula: geomean
+categories:
+  - id: cat1
+    includes:
+      metrics: [nsPerOp]
+`)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "all contexts are derived")
+	})
+
+	t.Run("should reject a category including only derived contexts", func(t *testing.T) {
+		_, err := loadFromString(t, strings.Replace(
+			derivedContextConfig(""),
+			"contexts: [small, large, summary]",
+			"contexts: [summary]", 1))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "categories.cat1.includes.contexts are derived")
+	})
+}
+
+// TestDerivedContextIsNotAutoIncluded verifies that an extra summary bar stays opt-in:
+// a category that does not list its contexts gets the measured ones only.
+func TestDerivedContextIsNotAutoIncluded(t *testing.T) {
+	cfg := mustLoadTestConfig(t, strings.Replace(
+		derivedContextConfig(""),
+		"      contexts: [small, large, summary]\n", "", 1))
+
+	require.Len(t, cfg.Categories, 1)
+	assert.Equal(t, []string{"small", "large"}, cfg.Categories[0].Includes.Contexts)
+}
+
+func TestDerivedCategory(t *testing.T) {
+	t.Run("should load a derived category", func(t *testing.T) {
+		cfg := mustLoadTestConfig(t, derivedCategoryConfig(""))
+
+		require.Len(t, cfg.Categories, 2)
+		bottomLine := cfg.Categories[1]
+		assert.True(t, bottomLine.IsDerived())
+		assert.Equal(t, AggregationFunctionMean, bottomLine.DerivedCategory.Formula)
+	})
+
+	t.Run("should default the title to the aggregation formula", func(t *testing.T) {
+		cfg := mustLoadTestConfig(t, derivedCategoryConfig(""))
+
+		assert.Equal(t, "{metric} - Mean", cfg.Categories[1].Title)
+	})
+
+	t.Run("should keep an explicit includes clause to narrow the aggregate", func(t *testing.T) {
+		cfg := mustLoadTestConfig(t, derivedCategoryConfig("    includes:\n      metrics: [nsPerOp]\n      contexts: [small]\n"))
+
+		assert.Equal(t, []MetricName{MetricNsPerOp}, cfg.Categories[1].Includes.Metrics)
+		assert.Equal(t, []string{"small"}, cfg.Categories[1].Includes.Contexts)
+
+		// nothing is injected: what is left out is implied when the series are built
+		assert.Empty(t, cfg.Categories[1].Includes.Functions)
+		assert.Empty(t, cfg.Categories[1].Includes.Versions)
+	})
+
+	t.Run("should reject an unknown reference in the includes clause", func(t *testing.T) {
+		_, err := loadFromString(t, derivedCategoryConfig("    includes:\n      contexts: [nowhere]\n"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "context ID not found")
+	})
+
+	t.Run("should reject a derived context in the includes clause", func(t *testing.T) {
+		_, err := loadFromString(t, strings.Replace(
+			derivedCategoryConfig("    includes:\n      contexts: [summary]\n"),
+			"contexts:\n  - id: small\n    match: small\n",
+			"contexts:\n  - id: small\n    match: small\n  - id: summary\n    derivedContext:\n      formula: min\n", 1))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "an aggregate may not aggregate another one")
+	})
+
+	t.Run("should reject an unknown formula", func(t *testing.T) {
+		_, err := loadFromString(t, strings.Replace(derivedCategoryConfig(""), "formula: mean", "formula: sum", 1))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unknown aggregation formula")
+	})
+
+	t.Run("should reject a configuration with only derived categories", func(t *testing.T) {
+		_, err := loadFromString(t, `
+metrics:
+  - id: nsPerOp
+functions:
+  - id: read
+    match: Read
+contexts:
+  - id: small
+    match: small
+categories:
+  - id: bottom-line
+    derivedCategory:
+      formula: mean
+`)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "all categories are derived")
+	})
+}
+
+func TestAggregationFunction(t *testing.T) {
+	for _, formula := range AllAggregationFunctions() {
+		assert.True(t, formula.IsValid(), "%q should be a valid formula", formula)
+		assert.Equal(t, string(formula), formula.String())
+	}
+
+	assert.False(t, AggregationFunctionNone.IsValid(), "the empty formula only signals a non derived entry")
+	assert.False(t, AggregationFunction("median").IsValid())
+
+	assert.False(t, Derived{}.IsDerived())
+	assert.True(t, Derived{Formula: AggregationFunctionMin}.IsDerived())
+}
+
+// TestEncodeYAMLDerived verifies that derived entries survive a serialization round trip.
+func TestEncodeYAMLDerived(t *testing.T) {
+	cfg := mustLoadTestConfig(t, derivedContextConfig(""))
+
+	var buf bytes.Buffer
+	require.NoError(t, cfg.EncodeYAML(&buf))
+	encoded := buf.String()
+
+	dir := t.TempDir()
+	file := filepath.Join(dir, "roundtrip.yaml")
+	require.NoError(t, os.WriteFile(file, buf.Bytes(), 0o600))
+
+	loaded, err := Load(file)
+	require.NoError(t, err)
+
+	context, ok := loaded.GetContext("summary")
+	require.True(t, ok)
+	assert.True(t, context.IsDerived())
+	assert.Equal(t, AggregationFunctionGeoMean, context.DerivedContext.Formula)
+
+	// only the entry that is actually derived carries a formula: the others must not
+	// advertise a feature they do not use
+	assert.Equal(t, 1, strings.Count(encoded, "Formula:"), "unexpected derived blocks in:\n%s", encoded)
+}
+
+// TestEncodeYAMLOmitsRuntimeAndEmptyDerived verifies that a generated configuration holds
+// only what a configuration file may actually set.
+func TestEncodeYAMLOmitsRuntimeAndEmptyDerived(t *testing.T) {
+	cfg := Generate(GenerateInput{
+		Functions: []string{"BenchmarkGreater/generic/int-16"},
+		Metrics:   []MetricName{MetricNsPerOp},
+	})
+
+	var buf bytes.Buffer
+	require.NoError(t, cfg.EncodeYAML(&buf))
+	encoded := buf.String()
+
+	for _, runtimeOnly := range []string{"Outputs", "HTMLFile", "PngFile", "IsJSON", "IsStrict"} {
+		assert.NotContains(t, encoded, runtimeOnly,
+			"%s comes from the command line and has no place in a config file", runtimeOnly)
+	}
+
+	// no category or context is derived here: no empty aggregation block should show up
+	assert.NotContains(t, encoded, "Derived")
+	assert.NotContains(t, encoded, "Formula")
+}
+
+// derivedContextConfig builds a config with a "summary" derived context, plus the extra
+// settings given for that context.
+func derivedContextConfig(extra string) string {
+	return `
+metrics:
+  - id: nsPerOp
+functions:
+  - id: read
+    match: Read
+contexts:
+  - id: small
+    match: small
+  - id: large
+    match: large
+  - id: summary
+    derivedContext:
+      formula: geomean
+` + extra + `
+versions:
+  - id: stdlib
+    match: standard
+categories:
+  - id: cat1
+    includes:
+      metrics: [nsPerOp]
+      contexts: [small, large, summary]
+`
+}
+
+// derivedCategoryConfig builds a config with a "bottom-line" derived category, plus the
+// extra settings given for that category.
+func derivedCategoryConfig(extra string) string {
+	return `
+metrics:
+  - id: nsPerOp
+functions:
+  - id: read
+    match: Read
+contexts:
+  - id: small
+    match: small
+versions:
+  - id: stdlib
+    match: standard
+categories:
+  - id: cat1
+    includes:
+      metrics: [nsPerOp]
+  - id: bottom-line
+    derivedCategory:
+      formula: mean
+` + extra
 }

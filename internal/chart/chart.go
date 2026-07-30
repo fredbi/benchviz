@@ -32,10 +32,26 @@ func NewChart(opts ...Option) *Chart {
 	}
 }
 
+// emptyValue is the ECharts marker for a data item with no value: it renders as a gap
+// while still occupying its slot on the category axis.
+//
+// Series data is aligned to the axis by index, so a point without a measurement must be
+// emitted rather than skipped — dropping it would shift every following point by one tick.
+const emptyValue = "-"
+
 // AddSeries adds a named data series to the chart.
 func (c *Chart) AddSeries(series model.MetricSeries) {
 	data := make([]echartsopts.BarData, 0, len(series.Points))
 	for _, point := range series.Points {
+		if point.Missing {
+			data = append(data, echartsopts.BarData{
+				Name:  point.Label,
+				Value: emptyValue,
+			})
+
+			continue
+		}
+
 		data = append(data, echartsopts.BarData{
 			Name:  point.Label,
 			Value: point.Value,

@@ -7,13 +7,13 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.7.2
 	github.com/go-openapi/testify/v2 v2.6.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
-	go.yaml.in/yaml/v3 v3.0.4
+	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/text v0.40.0
 	golang.org/x/tools v0.48.0
 )
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20260714215040-dc233986426f // indirect
+	github.com/chromedp/cdproto v0.0.0-20260719223732-95f6af754cfe // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect

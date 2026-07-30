@@ -86,37 +86,55 @@
       "ID": "int",
       "Title": "int",
       "Match": "int",
-      "NotMatch": ""
+      "NotMatch": "",
+      "DerivedContext": {
+        "Formula": ""
+      }
     },
     {
       "ID": "float64",
       "Title": "float64",
       "Match": "float64",
-      "NotMatch": ""
+      "NotMatch": "",
+      "DerivedContext": {
+        "Formula": ""
+      }
     },
     {
       "ID": "string",
       "Title": "string",
       "Match": "string",
-      "NotMatch": ""
+      "NotMatch": "",
+      "DerivedContext": {
+        "Formula": ""
+      }
     },
     {
       "ID": "small",
       "Title": "small",
       "Match": "small",
-      "NotMatch": ""
+      "NotMatch": "",
+      "DerivedContext": {
+        "Formula": ""
+      }
     },
     {
       "ID": "medium",
       "Title": "medium",
       "Match": "medium",
-      "NotMatch": ""
+      "NotMatch": "",
+      "DerivedContext": {
+        "Formula": ""
+      }
     },
     {
       "ID": "large",
       "Title": "large",
       "Match": "large",
-      "NotMatch": ""
+      "NotMatch": "",
+      "DerivedContext": {
+        "Formula": ""
+      }
     }
   ],
   "Versions": [
@@ -157,6 +175,9 @@
           "nsPerOp",
           "allocsPerOp"
         ]
+      },
+      "DerivedCategory": {
+        "Formula": ""
       }
     },
     {
@@ -179,6 +200,9 @@
           "nsPerOp",
           "allocsPerOp"
         ]
+      },
+      "DerivedCategory": {
+        "Formula": ""
       }
     }
   ],

@@ -3,8 +3,16 @@
   "Charts": [
     {
       "Title": "Benchmark Timings (comparisons)",
-      "Subtitle": "",
-      "XAxisLabels": null,
+      "Subtitle": "linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor",
+      "XAxisLabels": [
+        "Greater - int",
+        "Greater - float64",
+        "Greater - string",
+        "Less - int",
+        "Positive - int",
+        "Positive - float64",
+        "Negative - int"
+      ],
       "YAxisLabel": "Benchmark Timings (ns/op)",
       "Theme": "roma",
       "Width": "900px",
@@ -16,18 +24,84 @@
       "Series": [
         {
           "Name": "reflect",
-          "Data": []
+          "Data": [
+            {
+              "name": "Greater - int",
+              "value": 201.2
+            },
+            {
+              "name": "Greater - float64",
+              "value": 395.9
+            },
+            {
+              "name": "Greater - string",
+              "value": 182.2
+            },
+            {
+              "name": "Less - int",
+              "value": 187.7
+            },
+            {
+              "name": "Positive - int",
+              "value": 141
+            },
+            {
+              "name": "Positive - float64",
+              "value": 268.6
+            },
+            {
+              "name": "Negative - int",
+              "value": 167
+            }
+          ]
         },
         {
           "Name": "generics",
-          "Data": []
+          "Data": [
+            {
+              "name": "Greater - int",
+              "value": 5.412
+            },
+            {
+              "name": "Greater - float64",
+              "value": 6.353
+            },
+            {
+              "name": "Greater - string",
+              "value": 8.335
+            },
+            {
+              "name": "Less - int",
+              "value": 5.377
+            },
+            {
+              "name": "Positive - int",
+              "value": 4.326
+            },
+            {
+              "name": "Positive - float64",
+              "value": 4.588
+            },
+            {
+              "name": "Negative - int",
+              "value": 4.075
+            }
+          ]
         }
       ]
     },
     {
       "Title": "Benchmark Allocations (comparisons)",
-      "Subtitle": "",
-      "XAxisLabels": null,
+      "Subtitle": "linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor",
+      "XAxisLabels": [
+        "Greater - int",
+        "Greater - float64",
+        "Greater - string",
+        "Less - int",
+        "Positive - int",
+        "Positive - float64",
+        "Negative - int"
+      ],
       "YAxisLabel": "Benchmark Allocations (allocs/op)",
       "Theme": "roma",
       "Width": "900px",
@@ -39,18 +113,80 @@
       "Series": [
         {
           "Name": "reflect",
-          "Data": []
+          "Data": [
+            {
+              "name": "Greater - int",
+              "value": 1
+            },
+            {
+              "name": "Greater - float64",
+              "value": 1
+            },
+            {
+              "name": "Greater - string",
+              "value": 1
+            },
+            {
+              "name": "Less - int",
+              "value": 1
+            },
+            {
+              "name": "Positive - int",
+              "value": 1
+            },
+            {
+              "name": "Positive - float64",
+              "value": 1
+            },
+            {
+              "name": "Negative - int",
+              "value": 1
+            }
+          ]
         },
         {
           "Name": "generics",
-          "Data": []
+          "Data": [
+            {
+              "name": "Greater - int",
+              "value": 0
+            },
+            {
+              "name": "Greater - float64",
+              "value": 0
+            },
+            {
+              "name": "Greater - string",
+              "value": 0
+            },
+            {
+              "name": "Less - int",
+              "value": 0
+            },
+            {
+              "name": "Positive - int",
+              "value": 0
+            },
+            {
+              "name": "Positive - float64",
+              "value": 0
+            },
+            {
+              "name": "Negative - int",
+              "value": 0
+            }
+          ]
         }
       ]
     },
     {
       "Title": "Benchmark Timings (collections)",
-      "Subtitle": "",
-      "XAxisLabels": null,
+      "Subtitle": "linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor",
+      "XAxisLabels": [
+        "small",
+        "medium",
+        "large"
+      ],
       "YAxisLabel": "Benchmark Timings (ns/op)",
       "Theme": "roma",
       "Width": "900px",
@@ -62,18 +198,48 @@
       "Series": [
         {
           "Name": "reflect",
-          "Data": []
+          "Data": [
+            {
+              "name": "small",
+              "value": 3795
+            },
+            {
+              "name": "medium",
+              "value": 322972
+            },
+            {
+              "name": "large",
+              "value": 30995386
+            }
+          ]
         },
         {
           "Name": "generics",
-          "Data": []
+          "Data": [
+            {
+              "name": "small",
+              "value": 216.4
+            },
+            {
+              "name": "medium",
+              "value": 5979
+            },
+            {
+              "name": "large",
+              "value": 443007
+            }
+          ]
         }
       ]
     },
     {
       "Title": "Benchmark Allocations (collections)",
-      "Subtitle": "",
-      "XAxisLabels": null,
+      "Subtitle": "linux amd64 cpu: AMD Ryzen 7 5800X 8-Core Processor",
+      "XAxisLabels": [
+        "small",
+        "medium",
+        "large"
+      ],
       "YAxisLabel": "Benchmark Allocations (allocs/op)",
       "Theme": "roma",
       "Width": "900px",
@@ -85,11 +251,37 @@
       "Series": [
         {
           "Name": "reflect",
-          "Data": []
+          "Data": [
+            {
+              "name": "small",
+              "value": 67
+            },
+            {
+              "name": "medium",
+              "value": 5153
+            },
+            {
+              "name": "large",
+              "value": 501503
+            }
+          ]
         },
         {
           "Name": "generics",
-          "Data": []
+          "Data": [
+            {
+              "name": "small",
+              "value": 2
+            },
+            {
+              "name": "medium",
+              "value": 3
+            },
+            {
+              "name": "large",
+              "value": 3
+            }
+          ]
         }
       ]
     }

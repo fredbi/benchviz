@@ -1,7 +1,9 @@
 # configuration for benchviz
 name: testify generics benchmarks
 environment: ''
-isJSON: true
+# this example reads JSON input: pass -json on the command line.
+# input format, strictness and output paths are runtime settings, deliberately
+# neutral in config files.
 render:
   title: 'Benchmark'
   theme: roma
@@ -12,10 +14,6 @@ render:
   legend: bottom
   scale: auto
   orientation: horizontal
-
-outputs:
-  htmlFile: ''
-  pngFile: ''
 
 metrics:
   - 
