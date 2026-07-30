@@ -79,7 +79,7 @@ func (b *Builder) buildChartForMetric(category model.Category, metric config.Met
 
 	opts := []Option{
 		WithTitle(title),
-		WithXAxisLabels(category.Labels()),
+		WithXAxisLabels(category.XLabels),
 		WithYAxisLabel(yAxis),
 		WithSubtitle(category.Environment),
 		WithLegend(showLegend),

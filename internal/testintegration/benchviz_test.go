@@ -27,9 +27,14 @@ func TestBenchviz(t *testing.T) {
 			writeData(t, "test_config.json", cfg)
 
 			t.Run("should parse benchmark", func(t *testing.T) {
-				p := parser.New(cfg, parser.WithParseJSON(cfg.IsJSON))
+				// The fixture is JSON. cfg.IsJSON is a runtime-only field fed by the
+				// -json CLI flag (it is not unmarshalled from the yaml), so it must be
+				// set explicitly here: reading the fixture as plain text silently
+				// yields an empty set and leaves the whole pipeline untested.
+				p := parser.New(cfg, parser.WithParseJSON(true))
 				require.NoError(t, p.ParseFiles(filepath.Join(fixtureDir, "benchmark.json")))
 				sets := p.Sets()
+				require.NotEmpty(t, sets)
 
 				writeData(t, "test_parsed.json", sets)
 
@@ -46,6 +51,20 @@ func TestBenchviz(t *testing.T) {
 					scenario, err := o.Scenarize(sets)
 					require.NoError(t, err)
 					writeData(t, "test_scenario.json", scenario)
+
+					require.NotEmpty(t, scenario.Categories)
+					for _, category := range scenario.Categories {
+						require.NotEmpty(t, category.XLabels, "category %q has no workload axis", category.ID)
+
+						for _, data := range category.Data {
+							for _, series := range data.Series {
+								// series data is mapped to the workload axis by index
+								require.Len(t, series.Points, len(category.XLabels),
+									"series %q of category %q is not aligned with the workload axis",
+									series.Title, category.ID)
+							}
+						}
+					}
 
 					t.Run("should build page", func(t *testing.T) {
 						builder := chart.New(cfg, scenario)

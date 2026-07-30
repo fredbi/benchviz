@@ -174,18 +174,14 @@ func TestSeriesFor(t *testing.T) {
 
 	category := cfg.Categories[0]
 
-	series := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", category)
-
-	require.NotEmpty(t, series)
+	series := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", columnsFor(cfg, category))
 
 	// For version "reflect", the category includes function "greater"
 	// and contexts "int" and "float64" → 1 series with 2 points.
-	require.Len(t, series, 1)
-
-	s := series[0]
-	assert.Equal(t, "reflect", s.Title)
-	assert.Len(t, s.Points, 2)
-	for _, p := range s.Points {
+	assert.Equal(t, "reflect", series.Title)
+	require.Len(t, series.Points, 2)
+	for _, p := range series.Points {
+		assert.False(t, p.Missing, "expected a measurement for %q", p.Name)
 		assert.Positive(t, p.Value, "expected positive value for %q", p.Name)
 	}
 }
@@ -200,9 +196,13 @@ func TestSeriesForNoMatch(t *testing.T) {
 
 	category := cfg.Categories[0]
 
-	// Query a version that doesn't exist in the data
-	series := benchSet.SeriesFor(config.MetricNsPerOp, "nonexistent", category)
-	assert.NotEmpty(t, series)
+	// Query a version that doesn't exist in the data: the series still covers every
+	// column, with all its points flagged missing.
+	series := benchSet.SeriesFor(config.MetricNsPerOp, "nonexistent", columnsFor(cfg, category))
+	require.Len(t, series.Points, 2)
+	for _, p := range series.Points {
+		assert.True(t, p.Missing, "expected no measurement for %q", p.Name)
+	}
 }
 
 // TestPopulateCategories verifies that populateCategories produces
@@ -270,6 +270,96 @@ func TestScenarizeEmptySets(t *testing.T) {
 	require.NotNil(t, scenario)
 }
 
+// TestSeriesStayAlignedOnHole guards the workload axis alignment: series data is mapped
+// to the axis by index, so a version missing one measurement must still emit a point on
+// that column. Skipping it used to shift every following point by one tick.
+func TestSeriesStayAlignedOnHole(t *testing.T) {
+	cfg := mustLoadConfig(t, genericsConfig())
+	o := New(cfg)
+
+	// "generics" has no float64 measurement, "reflect" has both contexts.
+	sets := []parser.Set{buildGenericsSetWithHole()}
+	scenario, err := o.Scenarize(sets)
+	require.NoError(t, err)
+	require.Len(t, scenario.Categories, 1)
+
+	category := scenario.Categories[0]
+	require.Len(t, category.XLabels, 2, "the float64 column is kept: reflect fills it")
+
+	for _, data := range category.Data {
+		for _, series := range data.Series {
+			require.Len(t, series.Points, len(category.XLabels),
+				"series %q (%s) must hold one point per axis label", series.Title, data.Metric.ID)
+
+			for i, point := range series.Points {
+				assert.Equal(t, category.XLabels[i], point.Label,
+					"point %d of series %q sits on the wrong column", i, series.Title)
+			}
+		}
+	}
+
+	// The hole is flagged, on the float64 column only, for the generics version.
+	for _, data := range category.Data {
+		if data.Version.ID != "generics" {
+			continue
+		}
+
+		require.Len(t, data.Series, 1)
+		points := data.Series[0].Points
+		assert.False(t, points[0].Missing, "int is measured for generics")
+		assert.True(t, points[1].Missing, "float64 is not measured for generics")
+		assert.Zero(t, points[1].Value)
+	}
+}
+
+// TestEmptyColumnsArePruned verifies that a column no version could fill is dropped
+// altogether, rather than showing as a labelled tick with no bar.
+func TestEmptyColumnsArePruned(t *testing.T) {
+	cfg := mustLoadConfig(t, genericsConfig())
+	o := New(cfg)
+
+	sets := []parser.Set{buildGenericsSetIntOnly()}
+	scenario, err := o.Scenarize(sets)
+	require.NoError(t, err)
+	require.Len(t, scenario.Categories, 1)
+
+	category := scenario.Categories[0]
+	require.Len(t, category.XLabels, 1, "float64 has no measurement at all: column dropped")
+	assert.Equal(t, "Int", category.XLabels[0])
+
+	for _, data := range category.Data {
+		for _, series := range data.Series {
+			assert.Len(t, series.Points, 1)
+		}
+	}
+}
+
+// TestRepeatedSamplesAreAveraged verifies that the repeated samples of a benchmark
+// (go test -count=N, or the same benchmark across input files) collapse into a single
+// measurement instead of piling up extra points on the series.
+func TestRepeatedSamplesAreAveraged(t *testing.T) {
+	cfg := mustLoadConfig(t, genericsConfig())
+	o := New(cfg)
+
+	sets := []parser.Set{{
+		Set: parse.Set{
+			"BenchmarkGreater/reflect/int-16": []*parse.Benchmark{
+				{Name: "BenchmarkGreater/reflect/int-16", N: 1000, NsPerOp: 100},
+				{Name: "BenchmarkGreater/reflect/int-16", N: 1000, NsPerOp: 300},
+			},
+		},
+		File: "test.json",
+	}}
+
+	benchSet, err := o.parseBenchmarks(sets)
+	require.NoError(t, err)
+
+	series := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", columnsFor(cfg, cfg.Categories[0]))
+	require.Len(t, series.Points, 2)
+	assert.InDelta(t, 200.0, series.Points[0].Value, 1e-9, "the two int samples average to 200")
+	assert.True(t, series.Points[1].Missing)
+}
+
 func TestDefaultString(t *testing.T) {
 	tests := []struct {
 		in, def, want string
@@ -309,12 +399,12 @@ func TestSeriesForPointNames(t *testing.T) {
 	require.NoError(t, err)
 
 	category := cfg.Categories[0]
-	series := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", category)
+	series := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", columnsFor(cfg, category))
 
-	require.NotEmpty(t, series)
+	require.NotEmpty(t, series.Points)
 
 	// Verify point names follow the pattern "function - version - context"
-	for _, point := range series[0].Points {
+	for _, point := range series.Points {
 		assert.NotEmpty(t, point.Name)
 		// Name should contain function, version and context
 		for _, part := range []string{"greater", "reflect"} {
@@ -332,21 +422,22 @@ func TestMultipleVersionSeries(t *testing.T) {
 	require.NoError(t, err)
 
 	category := cfg.Categories[0]
+	columns := columnsFor(cfg, category)
 
 	// Get series for both versions
-	reflectSeries := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", category)
-	genericsSeries := benchSet.SeriesFor(config.MetricNsPerOp, "generics", category)
+	reflectSeries := benchSet.SeriesFor(config.MetricNsPerOp, "reflect", columns)
+	genericsSeries := benchSet.SeriesFor(config.MetricNsPerOp, "generics", columns)
 
-	assert.NotEmpty(t, reflectSeries)
-	assert.NotEmpty(t, genericsSeries)
+	require.NotEmpty(t, reflectSeries.Points)
+	require.NotEmpty(t, genericsSeries.Points)
+
+	// Both series cover the same columns, in the same order.
+	assert.Len(t, genericsSeries.Points, len(reflectSeries.Points))
 
 	// Generic benchmarks should have lower ns/op values in our test data
-	if len(reflectSeries) > 0 && len(genericsSeries) > 0 &&
-		len(reflectSeries[0].Points) > 0 && len(genericsSeries[0].Points) > 0 {
-		if genericsSeries[0].Points[0].Value >= reflectSeries[0].Points[0].Value {
-			t.Logf("Note: generic ns/op (%f) >= reflect ns/op (%f) - unexpected for test data",
-				genericsSeries[0].Points[0].Value, reflectSeries[0].Points[0].Value)
-		}
+	if genericsSeries.Points[0].Value >= reflectSeries.Points[0].Value {
+		t.Logf("Note: generic ns/op (%f) >= reflect ns/op (%f) - unexpected for test data",
+			genericsSeries.Points[0].Value, reflectSeries.Points[0].Value)
 	}
 }
 
@@ -381,6 +472,24 @@ func buildGenericsSet() parser.Set {
 		File:        "test.json",
 		Environment: "linux amd64 cpu: Test CPU",
 	}
+}
+
+// buildGenericsSetWithHole omits the generics/float64 benchmark: the float64 column is
+// measured by "reflect" only.
+func buildGenericsSetWithHole() parser.Set {
+	set := buildGenericsSet()
+	delete(set.Set, "BenchmarkGreater/generic/float64-16")
+
+	return set
+}
+
+// buildGenericsSetIntOnly omits every float64 benchmark: the float64 column is empty.
+func buildGenericsSetIntOnly() parser.Set {
+	set := buildGenericsSet()
+	delete(set.Set, "BenchmarkGreater/generic/float64-16")
+	delete(set.Set, "BenchmarkGreater/reflect/float64-16")
+
+	return set
 }
 
 func genericsConfig() string {
