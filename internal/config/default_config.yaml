@@ -33,6 +33,32 @@ metrics:
     axis: 'MB/s'
 
 functions: []
+
+# A context may summarize the others rather than hold measurements of its own.
+# It renders as an extra bar at the end of the chart, aggregating the workloads of
+# each function, with the versions still side by side.
+#
+# Formulas: mean, geomean, min, max. A derived context carries no match/notmatch,
+# and must be listed explicitly in the includes of the categories that display it.
+#
+# contexts:
+#   - id: small
+#     match: 'small'
+#   - id: geomean
+#     derivedContext:
+#       formula: geomean
 contexts: []
+
 versions: []
+
+# A category may summarize the others: it then produces a "bottom line" chart with
+# one aggregated bar per function. Its scope defaults to the union of what the other
+# categories include; an includes clause narrows it, one dimension at a time.
+#
+# categories:
+#   - id: bottom-line
+#     derivedCategory:
+#       formula: geomean
+#     includes:
+#       contexts: [small, medium]
 categories: []

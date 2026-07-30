@@ -231,12 +231,16 @@ categories:
 - [x] ✅ visual check on the swag example: three bottom-line charts (one per metric),
       one tick per function, versions side by side in their existing colours
 
-### Phase 4 — docs and examples 📝
+### Phase 4 — docs and examples ✅
 
-- [ ] 📝 README section + `default_config.yaml` comments
-- [ ] 📝 `examples/swag/benchviz.yaml`: add a `geomean` context and a derived category
-- [ ] 📝 regenerate example HTML/PNG
-- [ ] 📝 delete `DERIVED_SERIES.md`
+- [x] ✅ `docs/configuration.md`: "Derived contexts", "Derived categories" and
+      "Aggregation" sections — the reference for the rules of §1
+- [x] ✅ README: a "Derived series" subsection under Concepts
+- [x] ✅ `default_config.yaml`: commented examples next to `contexts:` and `categories:`
+- [x] ✅ `examples/swag/benchviz.yaml`: a `geomean` context on the two multi-workload
+      categories, and a `bottom-line` derived category narrowed to `small, medium`
+- [x] ✅ regenerated `examples/swag/benchmark-swag.{html,png}`
+- [x] ✅ deleted `DERIVED_SERIES.md`
 
 ## 5. Open points
 

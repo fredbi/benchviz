@@ -58,6 +58,31 @@ We rearrange raw measurements into series to be rendered as bar charts.
 
 All these items may get a customized title.
 
+### Derived series
+
+Contexts and categories may be declared *derived*: they hold no measurement of their own,
+and instead summarize the others with an aggregation formula (`mean`, `geomean`, `min`, `max`).
+
+* a derived **context** adds an extra summary bar at the end of a chart, aggregating the
+  workloads of each function. Versions stay side by side, so the comparison still reads.
+* a derived **category** produces a separate "bottom line" chart: one bar per function,
+  summarizing everything the other charts show in detail.
+
+```yaml
+contexts:
+  - id: geomean
+    derivedContext:
+      formula: geomean
+
+categories:
+  - id: bottom-line
+    derivedCategory:
+      formula: geomean
+```
+
+See the [configuration reference](./docs/configuration.md#derived-contexts) for the
+aggregation rules, and the [swag example](./examples/swag) for both in action.
+
 ## Layout options
 
 * theme

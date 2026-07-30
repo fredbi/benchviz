@@ -9,6 +9,7 @@
 *.dylib
 benchviz
 .mcp.json
+*.local.json
 
 # Test binary, built with `go test -c`
 *.test
