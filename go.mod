@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/chromedp/chromedp v0.16.0
 	github.com/go-echarts/go-echarts/v2 v2.7.2
-	github.com/go-openapi/testify/v2 v2.6.0
+	github.com/go-openapi/testify/v2 v2.6.1
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/text v0.40.0
@@ -19,7 +19,6 @@ require (
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 )
